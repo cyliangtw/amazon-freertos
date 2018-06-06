@@ -75,6 +75,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     /* Init ETH */
     numaker_mac_address(hwaddr);
+	  FreeRTOS_UpdateMACAddress(hwaddr);
     printf("mac address %02x-%02x-%02x-%02x-%02x-%02x \r\n", hwaddr[0], hwaddr[1],hwaddr[2],hwaddr[3],hwaddr[4],hwaddr[5]);
     /* Enable clock & set EMAC configuration         */
     /* Enable MAC and DMA transmission and reception */
