@@ -125,6 +125,8 @@
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY \
     ( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << ( 8 - configPRIO_BITS ) )
 
+#define configMAC_INTERRUPT_PRIORITY  (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1)
+    
 /* Normal assert() semantics without relying on the provision of an assert.h
  * header file. */
 #define configASSERT( x )                                        \
