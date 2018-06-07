@@ -98,14 +98,21 @@ BaseType_t xNetworkInterfaceInitialise( void )
             configASSERT( xTXMutex );
 		}        
     }
+
+		NVIC_SetPriority( EMAC_RX_IRQn, configMAC_INTERRUPT_PRIORITY );
+		NVIC_SetPriority( EMAC_TX_IRQn, configMAC_INTERRUPT_PRIORITY );
+
 		numaker_eth_enable_interrupts();
+
+		printf("ETH-RX priority:%d\n",NVIC_GetPriority( EMAC_RX_IRQn));
+
     return xReturn;
 }
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t xReleaseAfterSend )
 {
     uint8_t *buffer;
-    
+//    printf("<-- dataLength=%d\n",pxDescriptor->xDataLength);
     if( pxDescriptor->xDataLength >= PACKET_BUFFER_SIZE )
     {
         FreeRTOS_printf(("TX buffer length %d over %d\n", pxDescriptor->xDataLength, PACKET_BUFFER_SIZE));
@@ -213,13 +220,14 @@ static void prvEMACHandlerTask( void *pvParameters )
         
 		/* No events to process now, wait for the next. */
 		ulTaskNotifyTake( pdFALSE, portMAX_DELAY ); 
-        
+    while(1)
+		{	
         /* get received frame */
         if ( numaker_eth_get_rx_buf(&dataLength, &buffer) != 0) {
             /* The event was lost because a network buffer was not available.
             Call the standard trace macro to log the occurrence. */
             iptraceETHERNET_RX_EVENT_LOST();
-            return;
+            break;
         }        
 
        /* Allocate a network buffer descriptor that points to a buffer
@@ -231,6 +239,7 @@ static void prvEMACHandlerTask( void *pvParameters )
         if( pxBufferDescriptor != NULL )
         {        
                 memcpy( pxBufferDescriptor->pucEthernetBuffer, buffer, dataLength );
+//					      printf("--> dataLength=%d\n",dataLength);
                 pxBufferDescriptor->xDataLength = dataLength;            
         }
         /* The event about to be sent to the TCP/IP is an Rx event. */
@@ -255,8 +264,11 @@ static void prvEMACHandlerTask( void *pvParameters )
         {
            /* The message was successfully sent to the TCP/IP stack.
               Call the standard trace macro to log the occurrence. */
-            iptraceNETWORK_INTERFACE_RECEIVE();
-        }        
+            //iptraceNETWORK_INTERFACE_RECEIVE();
+        } 
+				numaker_eth_rx_next();
+			}	
+			numaker_eth_trigger_rx();
     }
 }
 
