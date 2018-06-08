@@ -63,6 +63,10 @@
  * negotiation. */
 #define democonfigMQTT_ECHO_TLS_NEGOTIATION_TIMEOUT          pdMS_TO_TICKS( 12000 )
 
+/* Simple TCP Echo Server task example parameters */
+#define democonfigTCP_ECHO_SERVER_TASK_STACK_SIZE          ( configMINIMAL_STACK_SIZE * 6 )
+#define democonfigTCP_ECHO_SERVER_TASK_PRIORITY            ( tskIDLE_PRIORITY )
+
 /* TCP Echo Client tasks separate example parameters. */
 #define democonfigTCP_ECHO_TASKS_SEPARATE_TASK_STACK_SIZE    ( configMINIMAL_STACK_SIZE * 3 )
 #define democonfigTCP_ECHO_TASKS_SEPARATE_TASK_PRIORITY      ( tskIDLE_PRIORITY )

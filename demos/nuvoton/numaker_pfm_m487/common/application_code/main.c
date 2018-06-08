@@ -159,7 +159,7 @@ static void vCheckTask( void *pvParameters )
     {
         /* Perform this check every mainCHECK_DELAY milliseconds. */
         vTaskDelayUntil( &xLastExecutionTime, mainCHECK_DELAY );
-				printf("Check delay ...\n");
+				printf("Check delay ...%d\n",xTaskGetTickCount());
 			  Sleep( 1 );
     }
 }
@@ -276,7 +276,7 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 //        if( ( SYSTEM_Init() == pdPASS ) && ( xTasksAlreadyCreated == pdFALSE ) )
 			  if( xTasksAlreadyCreated == pdFALSE  )
         {
-#if 0					
+#if 1					
             /* Run all demos. */
             DEMO_RUNNER_RunDemos();
 #endif					

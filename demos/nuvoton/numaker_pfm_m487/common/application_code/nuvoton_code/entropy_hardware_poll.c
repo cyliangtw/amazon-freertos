@@ -106,7 +106,7 @@ int mbedtls_hardware_poll( void *data,
 }
  
 #if 1
-uint32_t ulRand( void )
+uint32_t numaker_ulRand( void )
 {
 	unsigned char tmpBuff[PRNG_KEY_SIZE];
 	trng_get(tmpBuff);
