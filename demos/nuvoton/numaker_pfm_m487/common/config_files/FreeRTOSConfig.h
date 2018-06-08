@@ -154,8 +154,8 @@ void vLoggingPrintf( const char * pcFormat,
 /* Pseudo random number generator, just used by demos so does not have to be
  * secure.  Do not use the standard C library rand() function as it can cause
  * unexpected behavior, such as calls to malloc(). */
-extern uint32_t ulRand(void);
-#define configRAND32()    ulRand()
+extern uint32_t numaker_ulRand(void);
+#define configRAND32()    numaker_ulRand()
 
 /* Demo specific macros that allow the application writer to insert code to be
  * executed immediately before the MCU's STOP low power mode is entered and exited

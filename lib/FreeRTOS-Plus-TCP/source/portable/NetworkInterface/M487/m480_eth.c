@@ -218,9 +218,9 @@ static void __eth_clk_pin_init()
 int numaker_eth_init(uint8_t *mac_addr)
 {
     int ret = 0;
-	// init CLK & pins
-	__eth_clk_pin_init();
-	
+    // init CLK & pins
+    __eth_clk_pin_init();
+  
     // Reset MAC
     EMAC->CTL = EMAC_CTL_RST_Msk;
     while(EMAC->CTL & EMAC_CTL_RST_Msk) {}
@@ -356,11 +356,11 @@ void numaker_eth_trigger_tx(uint16_t length, void *p)
 
 int numaker_eth_link_ok(void)
 {
-	/* first, a dummy read to latch */
-	mdio_read(CONFIG_PHY_ADDR, MII_BMSR);
-	if(mdio_read(CONFIG_PHY_ADDR, MII_BMSR) & BMSR_LSTATUS)
-		return 1;
-	return 0;	
+    /* first, a dummy read to latch */
+    mdio_read(CONFIG_PHY_ADDR, MII_BMSR);
+    if(mdio_read(CONFIG_PHY_ADDR, MII_BMSR) & BMSR_LSTATUS)
+      return 1;
+    return 0;	
 }
 
 //void numaker_eth_set_cb(eth_callback_t eth_cb, void *userData)
@@ -382,8 +382,8 @@ void numaker_mac_address(uint8_t *mac)
     // http://en.wikipedia.org/wiki/MAC_address
     uint32_t word1 = *(uint32_t *)0x7F800; // 2KB Data Flash at 0x7F800
 
-	if( word0 == 0xFFFFFFFF )		// Not burn any mac address at 1st 2 words of Data Flash
-	{
+    if( word0 == 0xFFFFFFFF )		// Not burn any mac address at 1st 2 words of Data Flash
+    {
         // with a semi-unique MAC address from the UUID
         /* Enable FMC ISP function */
         SYS_UnlockReg();
@@ -396,7 +396,7 @@ void numaker_mac_address(uint8_t *mac)
         FMC_Close();
         /* Lock protected registers */
         SYS_LockReg();
-	}
+    }
 
     word1 |= 0x00000200;
     word1 &= 0x0000FEFF;
@@ -412,13 +412,13 @@ void numaker_mac_address(uint8_t *mac)
 }
 
 void numaker_eth_enable_interrupts(void) {
-    EMAC->INTEN |= EMAC_INTEN_RXIEN_Msk |
+  EMAC->INTEN |= EMAC_INTEN_RXIEN_Msk |
                    EMAC_INTEN_TXIEN_Msk ;
-	NVIC_EnableIRQ(EMAC_RX_IRQn);
-	NVIC_EnableIRQ(EMAC_TX_IRQn);
+  NVIC_EnableIRQ(EMAC_RX_IRQn);
+  NVIC_EnableIRQ(EMAC_TX_IRQn);
 }
 
 void numaker_eth_disable_interrupts(void) {
-	NVIC_DisableIRQ(EMAC_RX_IRQn);
-	NVIC_DisableIRQ(EMAC_TX_IRQn);
+  NVIC_DisableIRQ(EMAC_RX_IRQn);
+  NVIC_DisableIRQ(EMAC_TX_IRQn);
 }
