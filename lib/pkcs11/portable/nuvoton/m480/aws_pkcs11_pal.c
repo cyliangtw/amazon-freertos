@@ -78,10 +78,10 @@ typedef struct
 #define NVT_STORE_BASE             ( 0x7E000UL )      /* local storage start address in APROM  */
 
 /* Set last 4 pages for certification storage, FMC_FLASH_PAGE_SIZE=4KB */
-static P11KeyConfig_t P11KeyConfig =(  NVT_STORE_BASE, 
-                                NVT_STORE_BASE + FMC_FLASH_PAGE_SIZE,
-                                NVT_STORE_BASE + FMC_FLASH_PAGE_SIZE*2,
-                                NVT_STORE_BASE + FMC_FLASH_PAGE_SIZE*3);
+static P11KeyConfig_t P11KeyConfig ={ NVT_STORE_BASE, 
+                                      NVT_STORE_BASE + FMC_FLASH_PAGE_SIZE,
+                                      NVT_STORE_BASE + FMC_FLASH_PAGE_SIZE*2,
+                                      NVT_STORE_BASE + FMC_FLASH_PAGE_SIZE*3};
 
 static P11CertData_t P11CertDataSave;
                                 
@@ -113,7 +113,7 @@ static CK_RV prvFLASH_update(uint32_t u32StartAddr, uint8_t * pucData, uint32_t 
     memcpy( P11CertDataSave.cCertificateData, pucData, ulDataSize );
     P11CertDataSave.ulDeviceCertificateMark = pkcs11OBJECT_FLASH_CERT_PRESENT;
     P11CertDataSave.ulCertificateSize = ulDataSize;
-    pDataSrc = (uint32_t *) P11CertDataSave;
+    pDataSrc = (uint32_t *) &P11CertDataSave;
     /* Fill flash range from u32StartAddr to u32EndAddr with data word u32Pattern. */
     for (u32Addr = u32StartAddr; u32Addr < u32EndAddr; u32Addr += 4)
     {
@@ -167,15 +167,15 @@ BaseType_t PKCS11_PAL_SaveFile( char * pcFileName,
     }
     else if( strcmp( pcFileName, pkcs11configFILE_NAME_KEY ) == 0 )
     {
-        certFlashAddr = P11ConfigFlashPtr.DeviceKey;
+        certFlashAddr = P11KeyConfig.DeviceKey;
     }
     else if( strcmp( pcFileName, pkcs11FILE_NAME_PUBLISHER_CERTIFICATE ) == 0 )
     {
-        certFlashAddr = P11ConfigFlashPtr.PublisherCertificate;        
+        certFlashAddr = P11KeyConfig.PublisherCertificate;        
     }
     else if( strcmp( pcFileName, pkcs11FILE_NAME_PUBLISHER_KEY ) == 0 )
     {
-        certFlashAddr = P11ConfigFlashPtr.PublisherKey;
+        certFlashAddr = P11KeyConfig.PublisherKey;
     }
 
     if( certFlashAddr !=0 )
@@ -223,18 +223,18 @@ BaseType_t PKCS11_PAL_ReadFile( char * pcFileName,
     }
     else if( strcmp( pcFileName, pkcs11configFILE_NAME_KEY ) == 0 )
     {
-        pCertFlash = (P11CertData_t *)P11ConfigFlashPtr.DeviceKey;
+        pCertFlash = (P11CertData_t *)P11KeyConfig.DeviceKey;
     }
     else if( strcmp( pcFileName, pkcs11FILE_NAME_PUBLISHER_CERTIFICATE ) == 0 )
     {
-        pCertFlash = (P11CertData_t *)P11ConfigFlashPtr.PublisherCertificate;        
+        pCertFlash = (P11CertData_t *)P11KeyConfig.PublisherCertificate;        
     }
     else if( strcmp( pcFileName, pkcs11FILE_NAME_PUBLISHER_KEY ) == 0 )
     {
-        pCertFlash = (P11CertData_t *)P11ConfigFlashPtr.PublisherKey;
+        pCertFlash = (P11CertData_t *)P11KeyConfig.PublisherKey;
     }
 
-    if( ( pCertFlash !=0 ) && ( pCertFlash->ulCertificatePresent == pkcs11OBJECT_FLASH_CERT_PRESENT ) )
+    if( ( pCertFlash !=0 ) && ( pCertFlash->ulDeviceCertificateMark == pkcs11OBJECT_FLASH_CERT_PRESENT ) )
     {
         pCertData = ( uint8_t * ) pCertFlash->cCertificateData;
         certSize = pCertFlash->ulCertificateSize;
