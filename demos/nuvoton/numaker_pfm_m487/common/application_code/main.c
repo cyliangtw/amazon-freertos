@@ -273,13 +273,10 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
     {
         /* The network is up so we can run. */
 			
-//        if( ( SYSTEM_Init() == pdPASS ) && ( xTasksAlreadyCreated == pdFALSE ) )
-			  if( xTasksAlreadyCreated == pdFALSE  )
+        if( ( SYSTEM_Init() == pdPASS ) && ( xTasksAlreadyCreated == pdFALSE ) )
         {
-#if 1					
             /* Run all demos. */
             DEMO_RUNNER_RunDemos();
-#endif					
             xTasksAlreadyCreated = pdTRUE;
         }
 
