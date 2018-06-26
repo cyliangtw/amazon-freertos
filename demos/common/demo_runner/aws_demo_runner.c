@@ -52,9 +52,9 @@ extern void vStartMQTTEchoDemo( void );
  */
 void DEMO_RUNNER_RunDemos( void )
 {
-//    vStartMQTTEchoDemo();
+    vStartMQTTEchoDemo();
     /* vStartSubpubDemoTasks(); */
-    vStartSimpleTCPServerTasks(); 
+    /* vStartSimpleTCPServerTasks(); */
     /* vStartTCPEchoClientTasks_SingleTasks(); */
     /* vStartTCPEchoClientTasks_SeparateTasks(); */
     /* vStartShadowDemoTasks(); */
