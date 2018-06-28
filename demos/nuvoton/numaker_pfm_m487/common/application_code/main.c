@@ -47,6 +47,8 @@
 /* Application version info. */
 #include "aws_application_version.h"
 
+#include "aws_dev_mode_key_provisioning.h"
+
 /* Hardware and starter kit includes. */
 #include "NuMicro.h"
 
@@ -272,9 +274,14 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
     if( eNetworkEvent == eNetworkUp )
     {
         /* The network is up so we can run. */
-			
+			  
         if( ( SYSTEM_Init() == pdPASS ) && ( xTasksAlreadyCreated == pdFALSE ) )
         {
+          /* A simple example to demonstrate key and certificate provisioning in
+            * microcontroller flash using PKCS#11 interface. This should be replaced
+            * by production ready key provisioning mechanism. */
+            vDevModeKeyProvisioning();
+          
             /* Run all demos. */
             DEMO_RUNNER_RunDemos();
             xTasksAlreadyCreated = pdTRUE;

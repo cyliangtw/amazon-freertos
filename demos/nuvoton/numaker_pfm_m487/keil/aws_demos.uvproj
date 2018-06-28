@@ -658,6 +658,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\common\mqtt\aws_hello_world.c</FilePath>
             </File>
+            <File>
+              <FileName>aws_dev_mode_key_provisioning.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\common\devmode_key_provisioning\aws_dev_mode_key_provisioning.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
