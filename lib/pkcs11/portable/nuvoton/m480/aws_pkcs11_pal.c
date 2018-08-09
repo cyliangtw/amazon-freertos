@@ -75,7 +75,7 @@ typedef struct
 /**
  * @brief Certificates/key storage in flash.
  */
-#define NVT_STORE_BASE             ( 0x7E000UL )      /* local storage start address in APROM  */
+#define NVT_STORE_BASE             ( 0x7B000UL )      /* local storage start address in APROM  */
 
 /* Set last 4 pages for certification storage, FMC_FLASH_PAGE_SIZE=4KB */
 static P11KeyConfig_t P11KeyConfig ={ NVT_STORE_BASE, 
