@@ -136,7 +136,7 @@ uint32_t ulIPAddress = pxNetworkBuffer->ulIPAddress;
 			 * Offset the memcpy by the size of a MAC address to start at the packet's
 			 * Ethernet header 'source' MAC address; the preceding 'destination' should not be altered.
 			 */
-			const char *pxUdpSrcAddrOffset = ( ( char *) pxUDPPacket + sizeof( MACAddress_t ) );
+			char *pxUdpSrcAddrOffset = ( ( char *) pxUDPPacket + sizeof( MACAddress_t ) );
 			memcpy( pxUdpSrcAddrOffset, xDefaultPartUDPPacketHeader.ucBytes, sizeof( xDefaultPartUDPPacketHeader ) );
 
 		#if ipconfigSUPPORT_OUTGOING_PINGS == 1
