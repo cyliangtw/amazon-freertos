@@ -34,6 +34,9 @@
 #include "queue.h"
 #include "semphr.h"
 
+/* TLS includes. */
+#include "aws_tls.h"
+
 /* Socket and WiFi interface includes. */
 #include "aws_secure_sockets.h"
 
@@ -78,12 +81,10 @@ typedef struct NuSecureSocket
     uint32_t ulFlags;
     TickType_t xSendTimeout;
     TickType_t xRecvTimeout;
-#if 0
     char * pcDestination;
     void * pvTLSContext;
     char * pcServerCertificate;
     uint32_t ulServerCertificateLength;
-#endif
 } NuSecureSocket_t;
 static NuSecureSocket_t xSockets[wificonfigMAX_SOCKETS];
 
@@ -251,12 +252,10 @@ Socket_t SOCKETS_Socket( int32_t lDomain,
         xSockets[ulSocketNum].ulFlags = 0;
         xSockets[ulSocketNum].xSendTimeout = pdMS_TO_TICKS(socketsconfigDEFAULT_SEND_TIMEOUT);
         xSockets[ulSocketNum].xRecvTimeout = pdMS_TO_TICKS(socketsconfigDEFAULT_RECV_TIMEOUT);
-#if 0
         xSockets[ulSocketNum].pcDestination = NULL;
         xSockets[ulSocketNum].pvTLSContext = NULL;
         xSockets[ulSocketNum].pcServerCertificate = NULL;
         xSockets[ulSocketNum].ulServerCertificateLength = 0;
-#endif
     }
 
     return (Socket_t)ulSocketNum;
@@ -277,6 +276,7 @@ int32_t SOCKETS_Connect( Socket_t xSocket,
                          Socklen_t xAddressLength )
 {
     NuSecureSocket_t *pxSecureSocket;
+    TLSParams_t xTLSParams = { 0 };
     uint32_t ulSocketNum = (uint32_t)xSocket;
     int32_t lSocketRet = SOCKETS_SOCKET_ERROR;
 
@@ -302,32 +302,26 @@ int32_t SOCKETS_Connect( Socket_t xSocket,
 
     /* Initialize TLS if necessary */
     if ((lSocketRet == SOCKETS_ERROR_NONE) && (pxSecureSocket->ulFlags & securesocketsSOCKET_SECURE_FLAG)) {
-#if 0
         /* Setup TLS parameters. */
-        xTLSParams.ulSize = sizeof( xTLSParams );
+        xTLSParams.ulSize = sizeof(xTLSParams);
         xTLSParams.pcDestination = pxSecureSocket->pcDestination;
         xTLSParams.pcServerCertificate = pxSecureSocket->pcServerCertificate;
         xTLSParams.ulServerCertificateLength = pxSecureSocket->ulServerCertificateLength;
-        xTLSParams.pvCallerContext = ( void * ) xSocket;
-        xTLSParams.pxNetworkRecv = &( prvNetworkRecv );
-        xTLSParams.pxNetworkSend = &( prvNetworkSend );
+        xTLSParams.pvCallerContext = (void *)xSocket;
+        xTLSParams.pxNetworkRecv = &(prvNetworkRecv);
+        xTLSParams.pxNetworkSend = &(prvNetworkSend);
 
         /* Initialize TLS. */
-        if( TLS_Init( &( pxSecureSocket->pvTLSContext ), &( xTLSParams ) ) == pdFREERTOS_ERRNO_NONE )
-        {
+        if (TLS_Init(&(pxSecureSocket->pvTLSContext), &(xTLSParams)) == pdFREERTOS_ERRNO_NONE) {
             /* Initiate TLS handshake. */
-            if( TLS_Connect( pxSecureSocket->pvTLSContext ) != pdFREERTOS_ERRNO_NONE )
-            {
+            if (TLS_Connect(pxSecureSocket->pvTLSContext) != pdFREERTOS_ERRNO_NONE) {
                 /* TLS handshake failed. */
-                lRetVal = SOCKETS_TLS_HANDSHAKE_ERROR;
+                lSocketRet = SOCKETS_TLS_HANDSHAKE_ERROR;
             }
-        }
-        else
-        {
+        } else {
             /* TLS Initialization failed. */
-            lRetVal = SOCKETS_TLS_INIT_ERROR;
+            lSocketRet = SOCKETS_TLS_INIT_ERROR;
         }
-#endif
     }
 
     return lSocketRet;
@@ -352,17 +346,14 @@ int32_t SOCKETS_Recv( Socket_t xSocket,
         /* Check that send is allowed on the socket. */
         if ((pxSecureSocket->ulFlags & securesocketsSOCKET_READ_CLOSED_FLAG) == 0) {
             if ((pxSecureSocket->ulFlags & securesocketsSOCKET_SECURE_FLAG)) {
-#if 0
                 /* Receive through TLS pipe, if negotiated. */
-                lSocketRet = TLS_Recv( pxSecureSocket->pvTLSContext, pvBuffer, xBufferLength );
+                lSocketRet = TLS_Recv(pxSecureSocket->pvTLSContext, pvBuffer, xBufferLength);
 
                 /* Convert the error code. */
-                if( lSocketRet < 0 )
-                {
+                if (lSocketRet < 0) {
                     /* TLS_Recv failed. */
                     lSocketRet = SOCKETS_TLS_RECV_ERROR;
                 }
-#endif
             } else {
                 /* Receive non-secure data */
                 lSocketRet = prvNetworkRecv(xSocket, pvBuffer, xBufferLength);
@@ -398,17 +389,14 @@ int32_t SOCKETS_Send( Socket_t xSocket,
         /* Check that send is allowed on the socket. */
         if ((pxSecureSocket->ulFlags & securesocketsSOCKET_WRITE_CLOSED_FLAG) == 0) {
             if ((pxSecureSocket->ulFlags & securesocketsSOCKET_SECURE_FLAG)) {
-#if 0
                 /* Send through TLS pipe, if negotiated. */
-                lSocketRet = TLS_Send( pxSecureSocket->pvTLSContext, pvBuffer, xDataLength );
+                lSocketRet = TLS_Send(pxSecureSocket->pvTLSContext, pvBuffer, xDataLength);
 
                 /* Convert the error code. */
-                if( lSocketRet < 0 )
-                {
+                if (lSocketRet < 0) {
                     /* TLS_Send failed. */
                     lSocketRet = SOCKETS_TLS_SEND_ERROR;
                 }
-#endif
             } else {
                 /* Send non-secure data */
                 lSocketRet = prvNetworkSend(xSocket, pvBuffer, xDataLength);
@@ -486,23 +474,18 @@ int32_t SOCKETS_Close( Socket_t xSocket )
         pxSecureSocket->ulFlags |= securesocketsSOCKET_READ_CLOSED_FLAG;
         pxSecureSocket->ulFlags |= securesocketsSOCKET_WRITE_CLOSED_FLAG;
 
-#if 0
         /* Free the space allocated for pcDestination. */
-        if( pxSecureSocket->pcDestination != NULL )
-        {
-            vPortFree( pxSecureSocket->pcDestination );
+        if (pxSecureSocket->pcDestination != NULL) {
+            vPortFree(pxSecureSocket->pcDestination);
         }
         /* Free the space allocated for pcServerCertificate. */
-        if( pxSecureSocket->pcServerCertificate != NULL )
-        {
-            vPortFree( pxSecureSocket->pcServerCertificate );
+        if (pxSecureSocket->pcServerCertificate != NULL) {
+            vPortFree(pxSecureSocket->pcServerCertificate);
         }
         /* Cleanup TLS. */
-        if( ( pxSecureSocket->ulFlags & stsecuresocketsSOCKET_SECURE_FLAG ) != 0UL )
-        {
-            TLS_Cleanup( pxSecureSocket->pvTLSContext );
+        if ((pxSecureSocket->ulFlags & securesocketsSOCKET_SECURE_FLAG) != 0UL) {
+            TLS_Cleanup(pxSecureSocket->pvTLSContext);
         }
-#endif
 
         pxSecureSocket->xWiFiConn.LinkID = (uint8_t)ulSocketNum;
         if (xSemaphoreTake(xNuWiFi.xWifiSem, xSemaphoreWaitTicks) == pdTRUE) {
@@ -540,19 +523,15 @@ int32_t SOCKETS_SetSockOpt( Socket_t xSocket,
         pxSecureSocket = &xSockets[ulSocketNum];
 
         switch (lOptionName) {
-#if 0
         case SOCKETS_SO_SERVER_NAME_INDICATION:
 
             /* Non-NULL destination string indicates that SNI extension should
              * be used during TLS negotiation. */
             pxSecureSocket->pcDestination = ( char * ) pvPortMalloc( 1U + xOptionLength );
 
-            if( pxSecureSocket->pcDestination == NULL )
-            {
+            if (pxSecureSocket->pcDestination == NULL) {
                 lSocketRet = SOCKETS_ENOMEM;
-            }
-            else
-            {
+            } else {
                 memcpy( pxSecureSocket->pcDestination, pvOptionValue, xOptionLength );
                 pxSecureSocket->pcDestination[ xOptionLength ] = '\0';
             }
@@ -565,12 +544,9 @@ int32_t SOCKETS_SetSockOpt( Socket_t xSocket,
              * list should not be used. */
             pxSecureSocket->pcServerCertificate = ( char * ) pvPortMalloc( xOptionLength );
 
-            if( pxSecureSocket->pcServerCertificate == NULL )
-            {
+            if (pxSecureSocket->pcServerCertificate == NULL) {
                 lSocketRet = SOCKETS_ENOMEM;
-            }
-            else
-            {
+            } else {
                 memcpy( pxSecureSocket->pcServerCertificate, pvOptionValue, xOptionLength );
                 pxSecureSocket->ulServerCertificateLength = xOptionLength;
             }
@@ -581,10 +557,9 @@ int32_t SOCKETS_SetSockOpt( Socket_t xSocket,
 
             /* Turn on the secure socket flag to indicate that
              * TLS should be used. */
-            pxSecureSocket->ulFlags |= stsecuresocketsSOCKET_SECURE_FLAG;
+            pxSecureSocket->ulFlags |= securesocketsSOCKET_SECURE_FLAG;
             break;
 
-#endif
         case SOCKETS_SO_SNDTIMEO:
         case SOCKETS_SO_RCVTIMEO:
             /* pvOptionValue passed should be of TickType_t */
@@ -592,9 +567,9 @@ int32_t SOCKETS_SetSockOpt( Socket_t xSocket,
 
             if (xTimeout < securesocketsMAX_TIMEOUT) {
                 if (lOptionName == SOCKETS_SO_SNDTIMEO) {
-//                    pxSecureSocket->xSendTimeout = xTimeout;
+                    pxSecureSocket->xSendTimeout = xTimeout;
                 } else {
-//                    pxSecureSocket->xRecvTimeout = xTimeout;
+                    pxSecureSocket->xRecvTimeout = xTimeout;
                 }
             } else {
                 lSocketRet = SOCKETS_EINVAL;
@@ -602,9 +577,9 @@ int32_t SOCKETS_SetSockOpt( Socket_t xSocket,
             break;
 
         case SOCKETS_SO_NONBLOCK:
-            /* Set timeout to be zero */
-            pxSecureSocket->xSendTimeout = 1;
-            pxSecureSocket->xRecvTimeout = 1;
+            /* Set timeout to be a small count */
+            pxSecureSocket->xSendTimeout = pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_SEND_TO);
+            pxSecureSocket->xRecvTimeout = pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_RECV_TO);
             break;
 
         default:
