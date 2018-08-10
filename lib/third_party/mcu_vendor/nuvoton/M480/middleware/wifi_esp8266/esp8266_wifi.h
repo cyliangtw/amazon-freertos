@@ -30,19 +30,22 @@
     #define Nuvoton_debug_printf( X )
 #endif
 
-#define ESP_WIFI_DATA_SIZE  2048
-#define ESP_WIFI_SEND_SIZE  1024
+#define ESP_WIFI_DATA_SIZE          2048
+#define ESP_WIFI_SEND_SIZE			1024
 
-#define AT_OK_STRING        "OK\r\n"
-#define AT_FAIL_STRING      "FAIL\r\n"
-#define AT_ERROR_STRING     "ERROR\r\n"
-#define AT_SEND_STRING      ">"
-#define AT_RECV_STRING      "+IPD,"
+#define ESP_WIFI_NONBLOCK_SEND_TO   2000
+#define ESP_WIFI_NONBLOCK_RECV_TO   200
+
+#define AT_OK_STRING                "OK\r\n"
+#define AT_FAIL_STRING              "FAIL\r\n"
+#define AT_ERROR_STRING             "ERROR\r\n"
+#define AT_SEND_STRING              ">"
+#define AT_RECV_STRING              "+IPD,"
 
 /* List of commands */
-#define CMD_NONE            0x00
-#define CMD_SEND            0x01
-#define CMD_RECV            0x02
+#define CMD_NONE                    0x00
+#define CMD_SEND                    0x01
+#define CMD_RECV                    0x02
 
 
 typedef enum {

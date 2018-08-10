@@ -284,7 +284,9 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
         /* Check RX empty => failed */
         while (RX_BUF_COUNT() == 0) {
             if (xTaskGetTickCount() > xTickTimeout) {
-                configPRINTF(("ERROR: [%s] Reach the timeout %d !!\n", __func__, xTimeout));
+                if (xTimeout > pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_RECV_TO)) {
+                    configPRINTF(("ERROR: [%s] Reach the timeout %d !!\n", __func__, xTimeout));
+                }
                 ucExit = 1;
                 break;
             }
@@ -383,7 +385,7 @@ static ESP_WIFI_Status_t ESP_AT_Command( ESP_WIFI_Object_t * pxObj, uint8_t * pu
             pxObj->AvailableTick = xTaskGetTickCount() + pdMS_TO_TICKS(ulTimeWaitMs);
         }
     }
-    //Nuvoton_debug_printf(("[%s] xRet = %d\n", __func__, xRet));
+    Nuvoton_debug_printf(("[%s] pucCmd %s, xRet = %d\n", __func__, pucCmd, xRet));
 
     return xRet;
 }
@@ -494,6 +496,7 @@ ESP_WIFI_Status_t ESP_WIFI_GetNetStatus( ESP_WIFI_Object_t * pxObj )
  */
 ESP_WIFI_Status_t ESP_WIFI_GetHostIP( ESP_WIFI_Object_t * pxObj, char * pcHost, uint8_t * pucIPAddr )
 {
+    char *pcDelim = ":\r\n";
     ESP_WIFI_Status_t xRet;
     char *pcPtr;
 
@@ -503,14 +506,15 @@ ESP_WIFI_Status_t ESP_WIFI_GetHostIP( ESP_WIFI_Object_t * pxObj, char * pcHost, 
     if (xRet == ESP_WIFI_STATUS_OK) {
         xRet = ESP_WIFI_STATUS_ERROR;
 
-        pcPtr = strtok((char *)pxObj->CmdData, ":\n");
+        pcPtr = strtok((char *)pxObj->CmdData, pcDelim);
         while (pcPtr != NULL){
             if (strcmp(pcPtr, "+CIPDOMAIN") == 0) {
-                pcPtr = strtok(NULL, ":\n");
+                pcPtr = strtok(NULL, pcDelim);
                 ParseIpAddr(pcPtr, pucIPAddr);
                 xRet = ESP_WIFI_STATUS_OK;
                 break;
             }
+            pcPtr = strtok(NULL, pcDelim);
         }
     }
 
@@ -699,7 +703,7 @@ ESP_WIFI_Status_t ESP_WIFI_Recv( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
     char *pcDelim = ",:";
     char *pcPtr;
     uint8_t ucLinkID;
-    uint16_t usCount;
+    uint16_t usCount, usRemain;
 
     xTickEnd = xTaskGetTickCount() + xTimeout;
 
@@ -710,12 +714,25 @@ ESP_WIFI_Status_t ESP_WIFI_Recv( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
     pxObj->ActiveCmd = CMD_RECV;
     (*usRecvLen) = 0;
     if (xWifiIpd.DataLength) {
-        memcpy(pcBuf, xWifiIpd.Data, xWifiIpd.DataLength);
-        (*usRecvLen) = xWifiIpd.DataLength;
+        if (xWifiIpd.DataLength >= usReqLen) {
+            memcpy(pcBuf, xWifiIpd.Data, usReqLen);
+            (*usRecvLen) = usReqLen;
 
-        /* Reset the IPD content */
-        xWifiIpd.DataLength = 0;
-        memset(xWifiIpd.Data, 0x0, sizeof(xWifiIpd.Data));
+            /* Reset the IPD content */
+            xWifiIpd.DataLength = xWifiIpd.DataLength - usReqLen;
+            for (usCount = 0; usCount < xWifiIpd.DataLength; usCount++) {
+                xWifiIpd.Data[usCount] = xWifiIpd.Data[usReqLen + usCount];
+            }
+            memset(xWifiIpd.Data + usCount, 0x0, usReqLen);
+            xRet = ESP_WIFI_STATUS_OK;
+        } else {
+            memcpy(pcBuf, xWifiIpd.Data, xWifiIpd.DataLength);
+            (*usRecvLen) = xWifiIpd.DataLength;
+
+            /* Reset the IPD content */
+            xWifiIpd.DataLength = 0;
+            memset(xWifiIpd.Data, 0x0, sizeof(xWifiIpd.Data));
+        }
     }
 
     while ((*usRecvLen) < usReqLen) {
@@ -746,10 +763,16 @@ ESP_WIFI_Status_t ESP_WIFI_Recv( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
                 }
                 /* Get the receive length */
                 pcPtr = strtok(NULL, pcDelim);
-                usCount += (uint16_t)atoi(pcPtr);
+                usCount = (uint16_t)atoi(pcPtr);
 
                 /* copy the receive data */
-                pcPtr = strtok(NULL, pcDelim);
+                pcPtr = strtok(NULL, "");
+                if (usCount > (usReqLen - (*usRecvLen))) {
+                    usRemain = (*usRecvLen) + usCount - usReqLen;
+                    usCount = usReqLen - (*usRecvLen);
+                    xWifiIpd.DataLength = usRemain;
+                    memcpy(xWifiIpd.Data, pcPtr+usCount, usRemain);
+                }
                 memcpy(pcBuf + (*usRecvLen), pcPtr, usCount);
                 (*usRecvLen) += usCount;
                 xRet = ESP_WIFI_STATUS_OK;
