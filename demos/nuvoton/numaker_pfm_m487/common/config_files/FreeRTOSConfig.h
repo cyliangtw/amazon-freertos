@@ -218,6 +218,9 @@ extern uint32_t numaker_ulRand(void);
 #define configECHO_SERVER_ADDR3       6
 #define configTCP_ECHO_CLIENT_PORT    7
 
+/* The platform FreeRTOS is running on. */
+#define configPLATFORM_NAME    "NuvotonNumakerM487"
+
 /* Default MAC address configuration.  The demo creates a virtual network
  * connection that uses this MAC address by accessing the raw Ethernet/WiFi data
  * to and from a real network connection on the host PC.  See the
