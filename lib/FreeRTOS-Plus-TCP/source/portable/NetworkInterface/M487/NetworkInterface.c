@@ -132,7 +132,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
     buffer = numaker_eth_get_tx_buf();
     if( buffer == NULL )
     {
-        FreeRTOS_printf(("Got NULL TX buffer\n"));
+        NU_DEBUGF(("Eth TX slots are busy\n"));
         return pdFALSE;
     }    
     
@@ -262,6 +262,7 @@ static void prvEMACHandlerTask( void *pvParameters )
             large enough to hold the received frame.  As this is the simple
             rather than efficient example the received data will just be copied
             into this buffer. */
+
             pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( PACKET_BUFFER_SIZE, 0 );
 
             if( pxBufferDescriptor != NULL )
@@ -269,6 +270,10 @@ static void prvEMACHandlerTask( void *pvParameters )
                 memcpy( pxBufferDescriptor->pucEthernetBuffer, buffer, dataLength );
 //                          printf("--> dataLength=%d\n",dataLength);
                 pxBufferDescriptor->xDataLength = dataLength;            
+            } else {
+                numaker_eth_rx_next();
+                iptraceETHERNET_RX_EVENT_LOST();
+                break;
             }
             /* The event about to be sent to the TCP/IP is an Rx event. */
             xRxEvent.eEventType = eNetworkRxEvent;
