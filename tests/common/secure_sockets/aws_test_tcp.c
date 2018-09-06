@@ -1683,7 +1683,7 @@ TEST( Full_TCP, AFQP_SOCKETS_Socket_InvalidInputParams )
 
 static void prvSOCKETS_Socket_InvalidTooManySockets( Server_t xConn )
 {
-    #if !defined( WIN32 ) && !defined( PIC32MZ ) && !defined( ESP32 ) /* Socket can be created as much as there is memory */
+    #if !defined( WIN32 ) && !defined( PIC32MZ ) && !defined( ESP32 ) && !defined( M487 )/* Socket can be created as much as there is memory */
         BaseType_t xResult;
         Socket_t pxCreatedSockets[ integrationtestportableMAX_NUM_UNSECURE_SOCKETS ];
         BaseType_t xSocketsCreated;
