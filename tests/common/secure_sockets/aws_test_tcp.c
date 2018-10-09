@@ -2230,7 +2230,7 @@ static void prvSOCKETS_Threadsafe_SameSocketDifferentTasks( Server_t xConn )
     size_t xRecvLoop, xRecvLen;
     tcptestEchoTestModes_t mode;
     BaseType_t xResult;
-    volatile char * pcReceivedString;
+    char * volatile pcReceivedString;
     volatile BaseType_t pcReceivedStringAllocated = pdFALSE;
     volatile BaseType_t xSocketPassingQueueAllocated = pdFALSE;
     volatile BaseType_t xSyncEventGroupAllocated = pdFALSE;
