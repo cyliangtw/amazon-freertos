@@ -54,7 +54,7 @@ NuWiFiModule_t xNuWiFi;
 #define ESP_UART            UART1;
 #define ESP_UART_IRQ        UART1_IRQn;
 #define ESP_UART_BAUDRATE   115200;
-#define ESP_TIMEOUT_IN_MS   10000;
+#define ESP_TIMEOUT_IN_MS   20000;
 
 static BaseType_t xWIFI_IsInitialized;
 static const TickType_t xSemaphoreWaitTicks = pdMS_TO_TICKS(wificonfigMAX_SEMAPHORE_WAIT_TIME_MS);
@@ -246,7 +246,26 @@ WIFIReturnCode_t WIFI_NetworkDelete( uint16_t usIndex )
 
 WIFIReturnCode_t WIFI_Ping( uint8_t * pucIPAddr, uint16_t usCount, uint32_t ulIntervalMS )
 {
-    WIFIReturnCode_t xWiFiRet = eWiFiNotSupported;
+    WIFIReturnCode_t xWiFiRet = eWiFiFailure;
+    uint32_t i;
+
+    if (pucIPAddr == NULL || usCount == 0) {
+        return xWiFiRet;
+    }
+
+    if (xSemaphoreTake(xNuWiFi.xWifiSem, xSemaphoreWaitTicks) == pdTRUE) {
+        for (i = 0 ; i < usCount ; i++) {
+            if (ESP_WIFI_Ping(&xNuWiFi.xWifiObject, pucIPAddr) == ESP_WIFI_STATUS_OK) {
+                xWiFiRet = eWiFiSuccess;
+                if (i < usCount - 1) {
+                    vTaskDelay(pdMS_TO_TICKS(ulIntervalMS));
+                }
+            }
+        }
+        xSemaphoreGive(xNuWiFi.xWifiSem);
+    } else {
+        xWiFiRet = eWiFiTimeout;
+    }
 
     return xWiFiRet;
 }
@@ -359,16 +378,14 @@ WIFIReturnCode_t WIFI_GetPMMode( WIFIPMMode_t * pxPMModeType, void * pvOptionVal
 
 BaseType_t WIFI_IsConnected( void )
 {
-    WIFIReturnCode_t xWiFiRet = eWiFiFailure;
+    BaseType_t xIsConnected = pdFALSE;
 
     if (xSemaphoreTake(xNuWiFi.xWifiSem, xSemaphoreWaitTicks) == pdTRUE) {
         if (ESP_WIFI_IsConnected(&xNuWiFi.xWifiObject) == pdTRUE) {
-            xWiFiRet = eWiFiSuccess;
+            xIsConnected = pdTRUE;
         }
         xSemaphoreGive(xNuWiFi.xWifiSem);
-    } else {
-        xWiFiRet = eWiFiTimeout;
     }
 
-    return xWiFiRet;
+    return xIsConnected;
 }

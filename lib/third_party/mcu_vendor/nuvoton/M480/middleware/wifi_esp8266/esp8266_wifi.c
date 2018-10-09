@@ -1,9 +1,9 @@
 /**************************************************************************//**
  * @file     esp8266_wifi.c
- * @version  V1.00
+ * @version  V1.10
  * @brief    M480 series ESP8266 WiFi driver source file
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * @copyright (C) 2018 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include "stdlib.h"
 
@@ -17,10 +17,10 @@
 /* Wi-Fi driver includes. */
 #include "esp8266_wifi.h"
 
-ESP_WIFI_IPD_t xWifiIpd;
+ESP_WIFI_IPD_t xWifiIpd[wificonfigMAX_SOCKETS];
 
 /* Uart rx buffer control */
-#define RX_BUF_SIZE         2048
+#define RX_BUF_SIZE         4096
 #define RX_BUF_RESET()      (rx_buf_ridx = rx_buf_widx = 0)
 
 static uint8_t rx_buf[RX_BUF_SIZE];
@@ -160,24 +160,41 @@ static void AT_ParseAddress( ESP_WIFI_Object_t * pxObj )
 {
     char *pcDelim = ",\r\n";
     char *pcPtr;
+    char *pcStaIp = NULL;
+    char *pcStaMac = NULL;
+    char *pcApIp = NULL;
+    char *pcApMac = NULL;
 
     pcPtr = strtok((char *)pxObj->CmdData, pcDelim);
 
     while (pcPtr != NULL){
         if (strcmp(pcPtr, "+CIFSR:STAIP") == 0) {
             pcPtr = strtok(NULL, pcDelim);
-            ParseIpAddr(pcPtr, pxObj->StaIpAddr);
+            pcStaIp = pcPtr;
         } else if (strcmp(pcPtr, "+CIFSR:STAMAC") == 0) {
             pcPtr = strtok(NULL, pcDelim);
-            ParseMacAddr(pcPtr, pxObj->StaMacAddr);
+            pcStaMac = pcPtr;
         } else if (strcmp(pcPtr, "+CIFSR:APIP") == 0) {
             pcPtr = strtok(NULL, pcDelim);
-            ParseIpAddr(pcPtr, pxObj->ApIpAddr);
+            pcApIp = pcPtr;
         } else if (strcmp(pcPtr, "+CIFSR:APMAC") == 0) {
             pcPtr = strtok(NULL, pcDelim);
-            ParseMacAddr(pcPtr, pxObj->ApMacAddr);
+            pcApMac = pcPtr;
         }
         pcPtr = strtok(NULL, pcDelim);
+    }
+
+    if (pcStaIp) {
+        ParseIpAddr(pcStaIp, pxObj->StaIpAddr);
+    }
+    if (pcStaMac) {
+        ParseMacAddr(pcStaMac, pxObj->StaMacAddr);
+    }
+    if (pcApIp) {
+        ParseIpAddr(pcApIp, pxObj->ApIpAddr);
+    }
+    if (pcApMac) {
+        ParseMacAddr(pcApMac, pxObj->ApMacAddr);
     }
 }
 
@@ -212,9 +229,15 @@ BaseType_t ESP_Platform_Init( ESP_WIFI_Object_t * pxObj )
         CLK_EnableModuleClock(UART1_MODULE);
         /* Select UART1 clock source is HXT */
         CLK_SetModuleClock(UART1_MODULE, CLK_CLKSEL1_UART1SEL_HXT, CLK_CLKDIV0_UART1(1));
+#if 0
         /* Set PB multi-function pins for UART1 RXD, TXD */
         SYS->GPB_MFPL &= ~(SYS_GPB_MFPL_PB3MFP_Msk | SYS_GPB_MFPL_PB2MFP_Msk);
         SYS->GPB_MFPL |= (SYS_GPB_MFPL_PB3MFP_UART1_TXD | SYS_GPB_MFPL_PB2MFP_UART1_RXD);
+#else
+        /* Set PH multi-function pins for UART1 RXD, TXD */
+        SYS->GPH_MFPH &= ~(SYS_GPH_MFPH_PH8MFP_Msk | SYS_GPH_MFPH_PH9MFP_Msk);
+        SYS->GPH_MFPH |= (SYS_GPH_MFPH_PH8MFP_UART1_TXD | SYS_GPH_MFPH_PH9MFP_UART1_RXD);
+#endif
     } else {
         configPRINTF(("Do not support MFP setting of UART_BASE 0x%p !\n", pxObj->Uart));
     }
@@ -235,9 +258,12 @@ BaseType_t ESP_Platform_Init( ESP_WIFI_Object_t * pxObj )
 /**
  * @brief  Write data to UART interface
  */
-uint16_t ESP_IO_Send( ESP_WIFI_Object_t * pxObj, uint8_t pucTxBuf[], uint16_t usWriteBytes)
+uint16_t ESP_IO_Send( ESP_WIFI_Object_t * pxObj, uint8_t pucTxBuf[], uint16_t usWriteBytes )
 {
-    Nuvoton_debug_printf(("[%s] \"%s\"\n", __func__, pucTxBuf));
+    if (usWriteBytes < 100)
+        Nuvoton_debug_printf(("[%s] \"%s\"\n", __func__, pucTxBuf));
+    else
+        Nuvoton_debug_printf(("[%s]\n", __func__));
 
     return UART_Write(pxObj->Uart, pucTxBuf, usWriteBytes);
 }
@@ -261,15 +287,17 @@ void UART1_IRQHandler(void)
 /**
  * @brief  Read data from UART interface
  */
-ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], uint16_t usReadBytes, TickType_t xTimeout )
+ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], uint16_t usReadBytes, 
+                               uint8_t ucLinkID, TickType_t xTimeout )
 {
     ESP_WIFI_Status_t xRet = ESP_WIFI_STATUS_TIMEOUT;
     TickType_t xTickTimeout;
-    uint8_t ucRecvHeader[16];
+    uint8_t ucRecvHeader[64];
     char *pcDelim = ",:";
     char *pcPtr;
     char *pcRecv;
     uint8_t ucExit = 0;
+    uint8_t ucIpdLinkID = 0;
     uint16_t usCount;
     uint16_t usIpdLength;
 
@@ -297,6 +325,9 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
 
         /* Get data from RX buffer */
         pucRxBuf[usCount] = RX_BUF_POP();
+        if (xTickTimeout - xTaskGetTickCount() < 5) {
+            xTickTimeout = xTaskGetTickCount() + 10;
+        }
 
         /* Check the end of the message to reduce the response time */
         switch (pucRxBuf[usCount]) {
@@ -307,6 +338,9 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
             } else if ((strstr(pcPtr, AT_FAIL_STRING)) || (strstr(pcPtr, AT_ERROR_STRING))) {
                 ucExit = 1;
                 xRet = ESP_WIFI_STATUS_ERROR;
+            } else if (strstr(pcPtr, AT_CLOSE_STRING)) {
+                ucExit = 1;
+                xRet = ESP_WIFI_STATUS_CLOSE;
             }
             break;
 
@@ -329,15 +363,41 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
                 pcPtr = strtok(pcPtr, pcDelim);
                 /* Check multiple connection */
                 if (pxObj->IsMultiConn == pdTRUE) {
+                    /* Get the Link ID */
                     pcPtr = strtok(NULL, pcDelim);
+                    ucIpdLinkID = (uint8_t)atoi(pcPtr);
                 }
                 pcPtr = strtok(NULL, pcDelim);
                 usIpdLength = (uint16_t)atoi(pcPtr);
+                if (xWifiIpd[ucIpdLinkID].DataLength + usIpdLength > sizeof(xWifiIpd[ucIpdLinkID].Data)) {
+                    if (xWifiIpd[ucIpdLinkID].DataLength < sizeof(xWifiIpd[ucIpdLinkID].Data)) {
+                        configPRINTF(("ERROR: [%s] Reach the Ipd maximum size !!\n", __func__));
+                    }
+                }
                 if (pxObj->ActiveCmd != CMD_RECV) {
                     /* Current active command is not the receive, we need to store the IPD data */
                     for (; usIpdLength > 0; usIpdLength--) {
-                        while (RX_BUF_COUNT() == 0) ;
-                        xWifiIpd.Data[xWifiIpd.DataLength++] = RX_BUF_POP();
+                        while (RX_BUF_COUNT() == 0) {
+                            if (xTaskGetTickCount() > xTickTimeout) {
+                                if (xTimeout > pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_RECV_TO)) {
+                                    configPRINTF(("ERROR: [%s] Get ipd reach the timeout %d !!\n", __func__, xTimeout));
+                                }
+                                ucExit = 1;
+                                break;
+                            }
+                        }
+                        if (ucExit == 0) {
+                            if (xWifiIpd[ucIpdLinkID].DataLength < sizeof(xWifiIpd[ucIpdLinkID].Data)) {
+                                xWifiIpd[ucIpdLinkID].Data[xWifiIpd[ucIpdLinkID].DataLength++] = RX_BUF_POP();
+                            } else {
+                                RX_BUF_POP();
+                            }
+                            if (xTickTimeout - xTaskGetTickCount() < 5) {
+                                xTickTimeout = xTaskGetTickCount() + 10;
+                            }
+                        } else {
+                            break;
+                        }
                     }
                     ucExit = 1;
                 } else {
@@ -355,7 +415,13 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
             break;
         }
     }
-    Nuvoton_debug_printf(("[%s] \"%s\", usCount = %d, xRet = %d\n", __func__, pucRxBuf, usCount, xRet));
+    if (usCount < 100) {
+        if (usCount > 0)
+            Nuvoton_debug_printf(("[%s] \"%s\", usCount = %d, xRet = %d\n", __func__, pucRxBuf, usCount, xRet));
+        else
+            Nuvoton_debug_printf(("."));
+    } else
+        Nuvoton_debug_printf(("[%s], usCount = %d, xRet = %d\n", __func__, usCount, xRet));
 
     return xRet;
 }
@@ -378,12 +444,14 @@ static ESP_WIFI_Status_t ESP_AT_Command( ESP_WIFI_Object_t * pxObj, uint8_t * pu
     }
 
     if (ESP_IO_Send(pxObj, pucCmd, strlen((char *)pucCmd)) > 0) {
-        xRet = ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), pxObj->Timeout);
+        do {
+            xRet = ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), 0, pxObj->Timeout);
 
-        if (ulTimeWaitMs > 0) {
-            /* Set the time that next AT command is workable */
-            pxObj->AvailableTick = xTaskGetTickCount() + pdMS_TO_TICKS(ulTimeWaitMs);
-        }
+            if (ulTimeWaitMs > 0) {
+                /* Set the time that next AT command is workable */
+                pxObj->AvailableTick = xTaskGetTickCount() + pdMS_TO_TICKS(ulTimeWaitMs);
+            }
+        } while (xRet > ESP_WIFI_STATUS_TIMEOUT);
     }
     Nuvoton_debug_printf(("[%s] pucCmd %s, xRet = %d\n", __func__, pucCmd, xRet));
 
@@ -400,8 +468,9 @@ ESP_WIFI_Status_t ESP_WIFI_Init( ESP_WIFI_Object_t * pxObj )
     ESP_WIFI_Status_t xRet = ESP_WIFI_STATUS_ERROR;
 
     if (ESP_Platform_Init(pxObj) == pdTRUE) {
-        //xRet = ESP_WIFI_Reset(pxObj);
-        xRet = ESP_WIFI_STATUS_OK;
+        /* Reset the WiFi module */
+        xRet = ESP_WIFI_Reset(pxObj);
+        //xRet = ESP_WIFI_STATUS_OK;
     }
 
     return xRet;
@@ -415,6 +484,9 @@ ESP_WIFI_Status_t ESP_WIFI_Connect( ESP_WIFI_Object_t * pxObj, const char * cSSI
 {
     ESP_WIFI_Status_t xRet;
 
+    /* Reset the WiFi module */
+    xRet = ESP_WIFI_Reset(pxObj);
+
     /* Set WiFi to STA mode */
     xRet = ESP_AT_Command(pxObj, (uint8_t *)"AT+CWMODE=1\r\n", 0);
 
@@ -424,6 +496,9 @@ ESP_WIFI_Status_t ESP_WIFI_Connect( ESP_WIFI_Object_t * pxObj, const char * cSSI
         xRet = ESP_AT_Command(pxObj, pxObj->CmdData, 0);
         if (xRet == ESP_WIFI_STATUS_OK) {
             pxObj->IsConnected = pdTRUE;
+
+            /* Enable multiple connections */
+            xRet = ESP_WIFI_SetMultiConn(pxObj, (uint8_t)1);
         }
     }
 
@@ -436,7 +511,14 @@ ESP_WIFI_Status_t ESP_WIFI_Connect( ESP_WIFI_Object_t * pxObj, const char * cSSI
  */
 ESP_WIFI_Status_t ESP_WIFI_Disconnect( ESP_WIFI_Object_t * pxObj )
 {
-    return ESP_AT_Command(pxObj, (uint8_t *)"AT+CWQAP\r\n", 0);
+    ESP_WIFI_Status_t xRet;
+
+    xRet = ESP_AT_Command(pxObj, (uint8_t *)"AT+CWQAP\r\n", 0);
+    if (xRet == ESP_WIFI_STATUS_OK) {
+        pxObj->IsConnected = pdFALSE;
+    }
+
+    return xRet;
 }
 
 /**
@@ -445,7 +527,21 @@ ESP_WIFI_Status_t ESP_WIFI_Disconnect( ESP_WIFI_Object_t * pxObj )
  */
 ESP_WIFI_Status_t ESP_WIFI_Reset( ESP_WIFI_Object_t * pxObj )
 {
-    return ESP_AT_Command(pxObj, (uint8_t *)"AT+RST\r\n", 1000);
+    ESP_WIFI_Status_t xRet;
+    uint8_t ucCount;
+
+    xRet = ESP_AT_Command(pxObj, (uint8_t *)"AT+RST\r\n", 1000);
+    vTaskDelay(pdMS_TO_TICKS(500));
+
+    /* Reset the flags, RX and Ipd buffers */
+    pxObj->IsMultiConn = pdFALSE;
+    pxObj->ActiveCmd = CMD_NONE;
+    RX_BUF_RESET();
+    for (ucCount = 0; ucCount < wificonfigMAX_SOCKETS; ucCount++) {
+        xWifiIpd[ucCount].DataLength = 0;
+    }
+
+    return xRet;
 }
 
 /**
@@ -491,13 +587,77 @@ ESP_WIFI_Status_t ESP_WIFI_GetNetStatus( ESP_WIFI_Object_t * pxObj )
 }
 
 /**
+ * @brief  Reset the Ipd buffer
+ */
+void ESP_WIFI_Reset_Ipd( ESP_WIFI_Conn_t * pxConn )
+{
+    xWifiIpd[pxConn->LinkID].DataLength = 0;
+}
+
+/**
+ * @brief  Get the Ipd buffer size of this socket
+ */
+uint16_t ESP_WIFI_Get_Ipd_Size( ESP_WIFI_Conn_t * pxConn )
+{
+    return xWifiIpd[pxConn->LinkID].DataLength;
+}
+
+/**
+ * @brief  Get the connection status
+ * @retval Operation status
+ */
+ESP_WIFI_Status_t ESP_WIFI_GetConnStatus( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * pxConn )
+{
+    ESP_WIFI_Status_t xRet;
+    char *pcDelim = ":,\r\n";
+    char *pcPtr;
+    uint8_t ucCount;
+
+    xRet = ESP_AT_Command(pxObj, (uint8_t *)"AT+CIPSTATUS\r\n", 0);
+
+    if (xRet == ESP_WIFI_STATUS_OK) {
+        pxConn->IsConnected = pdFAIL;
+        pcPtr = strtok((char *)pxObj->CmdData, pcDelim);
+        /* Skip the first line of response */
+        pcPtr = strtok(NULL, pcDelim);
+
+        while (pcPtr != NULL){
+            if (strcmp(pcPtr, "+CIPSTATUS") == 0) {
+                pcPtr = strtok(NULL, pcDelim);
+                if (pxConn->LinkID == (uint8_t)atoi(pcPtr)) {
+                    pxConn->IsConnected = pdTRUE;
+                    break;
+                }
+            } else if (strcmp(pcPtr, "STATUS") == 0) {
+                pcPtr = strtok(NULL, pcDelim);
+                pxConn->Status = (uint8_t)atoi(pcPtr);
+            }
+            pcPtr = strtok(NULL, pcDelim);
+        }
+    }
+
+    return xRet;
+}
+
+/**
+ * @brief  Ping an IP address
+ * @retval Operation status
+ */
+ESP_WIFI_Status_t ESP_WIFI_Ping( ESP_WIFI_Object_t * pxObj, uint8_t * pucIPAddr )
+{
+    sprintf((char *)pxObj->CmdData, "AT+PING=\"%d.%d.%d.%d\"\r\n", pucIPAddr[0], pucIPAddr[1], pucIPAddr[2], pucIPAddr[3]);
+
+    return ESP_AT_Command(pxObj, pxObj->CmdData, 0);
+}
+
+/**
  * @brief  Get the IP address from a host name
  * @retval Operation status
  */
 ESP_WIFI_Status_t ESP_WIFI_GetHostIP( ESP_WIFI_Object_t * pxObj, char * pcHost, uint8_t * pucIPAddr )
 {
-    char *pcDelim = ":\r\n";
     ESP_WIFI_Status_t xRet;
+    char *pcDelim = ":\r\n";
     char *pcPtr;
 
     sprintf((char *)pxObj->CmdData, "AT+CIPDOMAIN=\"%s\"\r\n", pcHost);
@@ -546,6 +706,7 @@ ESP_WIFI_Status_t ESP_WIFI_SetMultiConn( ESP_WIFI_Object_t * pxObj, uint8_t mode
 ESP_WIFI_Status_t ESP_WIFI_StartClient( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * pxConn )
 {
     ESP_WIFI_Status_t xRet;
+    ESP_WIFI_Status_t xClose;
     uint8_t ucCount;
 
     /* Set multiple connection */
@@ -591,6 +752,14 @@ ESP_WIFI_Status_t ESP_WIFI_StartClient( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn
 
     if (xRet != ESP_WIFI_STATUS_OK) {
         configPRINTF(("%s returns %d failed !!\n", __func__, xRet));
+        /* Wait for socket closed if returns error */
+        if ((xRet == ESP_WIFI_STATUS_ERROR) && (!strstr((char *)pxObj->CmdData, "ALREADY CONNECTED"))) {
+            do {
+                Nuvoton_debug_printf(("Socket connect error, Wait for socket close.\n"));
+                xClose = ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), 0, pxObj->Timeout);
+            } while (xClose != ESP_WIFI_STATUS_CLOSE);
+            pxObj->AvailableTick = xTaskGetTickCount() + pdMS_TO_TICKS(200);
+        }
     }
 
     return xRet;
@@ -628,8 +797,6 @@ ESP_WIFI_Status_t ESP_WIFI_Send( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
 
     if (pcBuf == NULL) {
         return xRet;
-    } else {
-        pcBuf[usReqLen] = 0;
     }
 
     (*usSendLen) = 0;
@@ -656,7 +823,7 @@ ESP_WIFI_Status_t ESP_WIFI_Send( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
 
         sprintf((char *)pxObj->CmdData + strlen((char *)pxObj->CmdData), "\r\n");
         /* Must wait a period of time after the CIPSEND AT command */
-        xRet = ESP_AT_Command(pxObj, pxObj->CmdData, 300);
+        xRet = ESP_AT_Command(pxObj, pxObj->CmdData, 100);
 
         if (xRet == ESP_WIFI_STATUS_OK) {
             pxObj->ActiveCmd = CMD_SEND;
@@ -665,9 +832,11 @@ ESP_WIFI_Status_t ESP_WIFI_Send( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
             xTickCurrent = xTaskGetTickCount();
             if (xTickCurrent < xTickEnd) {
                 xTickTimeout = xTickEnd - xTickCurrent;
-                if (ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), xTickTimeout) == ESP_WIFI_STATUS_SEND) {
+                if (ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), 0, xTickTimeout) == ESP_WIFI_STATUS_SEND) {
                     /* WiFi module allows to send data */
-                    usRealSend = ESP_IO_Send(pxObj, pcBuf, usAskSend);
+                    memcpy(pxObj->CmdData, pcBuf + (*usSendLen), usAskSend);
+                    *(pxObj->CmdData + usAskSend) = 0;
+                    usRealSend = ESP_IO_Send(pxObj, pxObj->CmdData, usAskSend);
                     if (usRealSend > 0) {
                         do {
                             xTickCurrent = xTaskGetTickCount();
@@ -675,9 +844,13 @@ ESP_WIFI_Status_t ESP_WIFI_Send( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
                                 xRet = ESP_WIFI_STATUS_TIMEOUT;
                             } else {
                                 xTickTimeout = xTickEnd - xTickCurrent;
-                                xRet = ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), xTickTimeout);
+                                /* Ensure the module has enough time to send data */
+                                if (xTickTimeout < pdMS_TO_TICKS(200)) {
+                                    xTickTimeout = pdMS_TO_TICKS(200);
+                                }
+                                xRet = ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), 0, xTickTimeout);
                             }
-                        } while (xRet == ESP_WIFI_STATUS_RECV);
+                        } while (xRet > ESP_WIFI_STATUS_TIMEOUT);
                         (*usSendLen) += usRealSend;
                         pxObj->ActiveCmd = CMD_NONE;
                     }
@@ -685,6 +858,8 @@ ESP_WIFI_Status_t ESP_WIFI_Send( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
             } else {
                 xRet = ESP_WIFI_STATUS_TIMEOUT;
             }
+        } else {
+            break;
         }
     }
 
@@ -713,25 +888,25 @@ ESP_WIFI_Status_t ESP_WIFI_Recv( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
 
     pxObj->ActiveCmd = CMD_RECV;
     (*usRecvLen) = 0;
-    if (xWifiIpd.DataLength) {
-        if (xWifiIpd.DataLength >= usReqLen) {
-            memcpy(pcBuf, xWifiIpd.Data, usReqLen);
+    if (xWifiIpd[pxConn->LinkID].DataLength) {
+        if (xWifiIpd[pxConn->LinkID].DataLength >= usReqLen) {
+            memcpy(pcBuf, xWifiIpd[pxConn->LinkID].Data, usReqLen);
             (*usRecvLen) = usReqLen;
 
-            /* Reset the IPD content */
-            xWifiIpd.DataLength = xWifiIpd.DataLength - usReqLen;
-            for (usCount = 0; usCount < xWifiIpd.DataLength; usCount++) {
-                xWifiIpd.Data[usCount] = xWifiIpd.Data[usReqLen + usCount];
+            /* Remain data of the IPD content */
+            xWifiIpd[pxConn->LinkID].DataLength = xWifiIpd[pxConn->LinkID].DataLength - usReqLen;
+            for (usCount = 0; usCount < xWifiIpd[pxConn->LinkID].DataLength; usCount++) {
+                xWifiIpd[pxConn->LinkID].Data[usCount] = xWifiIpd[pxConn->LinkID].Data[usReqLen + usCount];
             }
-            memset(xWifiIpd.Data + usCount, 0x0, usReqLen);
+            memset(xWifiIpd[pxConn->LinkID].Data + usCount, 0x0, usReqLen);
             xRet = ESP_WIFI_STATUS_OK;
         } else {
-            memcpy(pcBuf, xWifiIpd.Data, xWifiIpd.DataLength);
-            (*usRecvLen) = xWifiIpd.DataLength;
+            memcpy(pcBuf, xWifiIpd[pxConn->LinkID].Data, xWifiIpd[pxConn->LinkID].DataLength);
+            (*usRecvLen) = xWifiIpd[pxConn->LinkID].DataLength;
 
             /* Reset the IPD content */
-            xWifiIpd.DataLength = 0;
-            memset(xWifiIpd.Data, 0x0, sizeof(xWifiIpd.Data));
+            xWifiIpd[pxConn->LinkID].DataLength = 0;
+            memset(xWifiIpd[pxConn->LinkID].Data, 0x0, sizeof(xWifiIpd[pxConn->LinkID].Data));
         }
     }
 
@@ -743,8 +918,9 @@ ESP_WIFI_Status_t ESP_WIFI_Recv( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
             break;
         }
 
-        xRet = ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), xTickTimeout);
+        xRet = ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), pxConn->LinkID, xTickTimeout);
         if (xRet == ESP_WIFI_STATUS_RECV) {
+            xRet = ESP_WIFI_STATUS_TIMEOUT;
             pcPtr = strstr((char *)(pxObj->CmdData), AT_RECV_STRING);
             if (pcPtr) {
                 /* Meet the receive data format */
@@ -754,28 +930,31 @@ ESP_WIFI_Status_t ESP_WIFI_Recv( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
                     /* Get the Link ID */
                     pcPtr = strtok(NULL, pcDelim);
                     ucLinkID = (int8_t)atoi(pcPtr);
-                    if (ucLinkID != pxConn->LinkID) {
+
+                    /* Get the receive length */
+                    pcPtr = strtok(NULL, pcDelim);
+                    usCount = (uint16_t)atoi(pcPtr);
+
+                    /* point to the start address of receive data */
+                    pcPtr += strlen(pcPtr) + 1;
+
+                    if (ucLinkID == pxConn->LinkID) {
+                        /* Copy the receive data */
+                        if (usCount > (usReqLen - (*usRecvLen))) {
+                            usRemain = (*usRecvLen) + usCount - usReqLen;
+                            usCount = usReqLen - (*usRecvLen);
+                            xWifiIpd[pxConn->LinkID].DataLength = usRemain;
+                            memcpy(xWifiIpd[pxConn->LinkID].Data, pcPtr+usCount, usRemain);
+                        }
+                        memcpy(pcBuf + (*usRecvLen), pcPtr, usCount);
+                        (*usRecvLen) += usCount;
                         xRet = ESP_WIFI_STATUS_OK;
-                        /* Receive message from wrong Link ID */
-                        configPRINTF(("ERROR: Requested ID is %d, but received ID is %d !\n", pxConn->LinkID, ucLinkID));
-                        return xRet;
+                    } else {
+                        /* Store the receive data for another socket */
+                        memcpy(xWifiIpd[ucLinkID].Data + xWifiIpd[ucLinkID].DataLength, pcPtr, usCount);
+                        xWifiIpd[ucLinkID].DataLength += usCount;
                     }
                 }
-                /* Get the receive length */
-                pcPtr = strtok(NULL, pcDelim);
-                usCount = (uint16_t)atoi(pcPtr);
-
-                /* copy the receive data */
-                pcPtr = strtok(NULL, "");
-                if (usCount > (usReqLen - (*usRecvLen))) {
-                    usRemain = (*usRecvLen) + usCount - usReqLen;
-                    usCount = usReqLen - (*usRecvLen);
-                    xWifiIpd.DataLength = usRemain;
-                    memcpy(xWifiIpd.Data, pcPtr+usCount, usRemain);
-                }
-                memcpy(pcBuf + (*usRecvLen), pcPtr, usCount);
-                (*usRecvLen) += usCount;
-                xRet = ESP_WIFI_STATUS_OK;
             }
         }
     }

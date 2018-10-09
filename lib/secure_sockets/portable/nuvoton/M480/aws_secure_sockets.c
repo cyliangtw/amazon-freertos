@@ -60,6 +60,11 @@
 #define securesocketsSOCKET_WRITE_CLOSED_FLAG           ( 1UL << 2 )
 
 /**
+ * @brief A flag to indicate whether or not the socket is connected.
+ */
+#define securesocketsSOCKET_IS_CONNECTED_FLAG           ( 1UL << 3 )
+
+/**
  * @brief The maximum timeout
  *
  */
@@ -127,14 +132,14 @@ static BaseType_t prvIsValidSocket( uint32_t ulSocketNum )
 {
     BaseType_t xSocketRet = pdFALSE;
 
-    configASSERT(ulSocketNum < wificonfigMAX_SOCKETS);
-
-    if (xSemaphoreTake(xSSocketSem, xSemaphoreWaitTicks) == pdTRUE) {
-        /* Check that the provided socket number is in use or not */
-        if (xSockets[ulSocketNum].ucInUse == 1) {
-            xSocketRet = pdTRUE;
+    if (ulSocketNum < wificonfigMAX_SOCKETS) {
+        if (xSemaphoreTake(xSSocketSem, xSemaphoreWaitTicks) == pdTRUE) {
+            /* Check that the provided socket number is in use or not */
+            if (xSockets[ulSocketNum].ucInUse == 1) {
+                xSocketRet = pdTRUE;
+            }
+            xSemaphoreGive(xSSocketSem);
         }
-        xSemaphoreGive(xSSocketSem);
     }
 
     return xSocketRet;
@@ -165,7 +170,7 @@ static BaseType_t prvNetworkSend( void * pvContext,
             if (xWiFiRet == ESP_WIFI_STATUS_OK) {
                 usTotalSent += usSentBytes;
             } else {
-                xSocketRet = xWiFiRet;
+                //xSocketRet = xWiFiRet;
                 break;
             }
         }
@@ -175,6 +180,7 @@ static BaseType_t prvNetworkSend( void * pvContext,
 
         xSemaphoreGive(xNuWiFi.xWifiSem);
     }
+
     //taskYIELD();
 
     return xSocketRet;
@@ -190,7 +196,8 @@ static BaseType_t prvNetworkRecv( void * pvContext,
     BaseType_t xSocketRet;
     TickType_t xTickTimeout;
     uint32_t ulSocketNum = (uint32_t)pvContext;
-    uint16_t usReceivedBytes = 0;
+    uint16_t usTotalReceivedBytes = 0;
+    uint16_t usReceivedBytes;
 
     /* Shortcut for socket access */
     pxSecureSocket = &xSockets[ulSocketNum];
@@ -199,24 +206,26 @@ static BaseType_t prvNetworkRecv( void * pvContext,
 
     for ( ; ; ) {
         if (xSemaphoreTake(xNuWiFi.xWifiSem, xTickTimeout) == pdTRUE) {
+            usReceivedBytes = 0;
             /* Receive the data */
-            xWiFiRet = ESP_WIFI_Recv(&xNuWiFi.xWifiObject, &(pxSecureSocket->xWiFiConn), (uint8_t *)pucReceiveBuffer,
-                                     (uint16_t)xReceiveBufferLength, &usReceivedBytes, pxSecureSocket->xRecvTimeout );
+            xWiFiRet = ESP_WIFI_Recv(&xNuWiFi.xWifiObject, &(pxSecureSocket->xWiFiConn), 
+                                     (uint8_t *)pucReceiveBuffer + usTotalReceivedBytes,
+                                     (uint16_t)xReceiveBufferLength - usTotalReceivedBytes, 
+                                     &usReceivedBytes, pdMS_TO_TICKS(ESP_WIFI_SHORT_RECV_TO));
 
             xSemaphoreGive(xNuWiFi.xWifiSem);
 
-            if ((xWiFiRet == ESP_WIFI_STATUS_OK) && (usReceivedBytes != 0)) {
+            usTotalReceivedBytes += usReceivedBytes;
+            if (xWiFiRet == ESP_WIFI_STATUS_OK) {
                 /* Success, return the number of bytes received */
-                xSocketRet = (BaseType_t)usReceivedBytes;
+                xSocketRet = (BaseType_t)usTotalReceivedBytes;
                 break;
-            } else if ((xWiFiRet == ESP_WIFI_STATUS_TIMEOUT) || (usReceivedBytes == 0)) {
+            } else if (xWiFiRet == ESP_WIFI_STATUS_TIMEOUT) {
                 /* Does not receive any data, retry it if still have time */
                 if (xTaskGetTickCount() < xTickTimeout) {
-                    vTaskDelay(1);
+                    vTaskDelay(5);
                 } else {
-                    /* Returning SOCKETS_EWOULDBLOCK will cause mBedTLS to fail
-                     * and so we must return zero */
-                    xSocketRet = 0;
+                    xSocketRet = (BaseType_t)usTotalReceivedBytes;
                     break;
                 }
             } else {
@@ -280,24 +289,42 @@ int32_t SOCKETS_Connect( Socket_t xSocket,
     uint32_t ulSocketNum = (uint32_t)xSocket;
     int32_t lSocketRet = SOCKETS_SOCKET_ERROR;
 
-    /* Check this is a valid socket */
-    if (prvIsValidSocket(ulSocketNum) == pdTRUE) {
+    if (ESP_WIFI_IsConnected(&xNuWiFi.xWifiObject) == pdTRUE) {
+        /* Check this is a valid socket */
+        if (prvIsValidSocket(ulSocketNum) == pdTRUE) {
+            lSocketRet = SOCKETS_ERROR_NONE;
+        } else {
+            configPRINTF(("ERROR: Invalid socket number !\n"));
+            lSocketRet = SOCKETS_EINVAL;
+        }
+    }
+
+    if (lSocketRet == SOCKETS_ERROR_NONE) {
         pxSecureSocket = &xSockets[ulSocketNum];
 
-        /* Set WiFi connection parameters */
-        memcpy(&(pxSecureSocket->xWiFiConn.RemoteIP), &pxAddress->ulAddress, sizeof(uint32_t));
-        pxSecureSocket->xWiFiConn.RemotePort = SOCKETS_ntohs(pxAddress->usPort);
-
-        if (xSemaphoreTake(xNuWiFi.xWifiSem, xSemaphoreWaitTicks) == pdTRUE) {
-            /* Start the client connection */
-            if (ESP_WIFI_StartClient(&xNuWiFi.xWifiObject, &pxSecureSocket->xWiFiConn) == ESP_WIFI_STATUS_OK) {
-                lSocketRet = SOCKETS_ERROR_NONE;
-            }
-            xSemaphoreGive(xNuWiFi.xWifiSem);
+        /* Check that the socket is not already connected. */
+        if ((pxSecureSocket->ulFlags & securesocketsSOCKET_IS_CONNECTED_FLAG) == 0) {
+            /* Connect attempted on an already connected socket. */
+            lSocketRet = SOCKETS_ERROR_NONE;
         }
-    } else {
-        configPRINTF(("ERROR: Invalid socket number !\n"));
-        lSocketRet = SOCKETS_EINVAL;
+
+        if (lSocketRet == SOCKETS_ERROR_NONE) {
+            lSocketRet = SOCKETS_SOCKET_ERROR;
+            /* Set WiFi connection parameters */
+            memcpy(&(pxSecureSocket->xWiFiConn.RemoteIP), &pxAddress->ulAddress, sizeof(uint32_t));
+            pxSecureSocket->xWiFiConn.RemotePort = SOCKETS_ntohs(pxAddress->usPort);
+
+            if (xSemaphoreTake(xNuWiFi.xWifiSem, xSemaphoreWaitTicks) == pdTRUE) {
+                /* Start the client connection */
+                if (ESP_WIFI_StartClient(&xNuWiFi.xWifiObject, &pxSecureSocket->xWiFiConn) == ESP_WIFI_STATUS_OK) {
+                    lSocketRet = SOCKETS_ERROR_NONE;
+
+                    /* Mark that the socket is connected. */
+                    pxSecureSocket->ulFlags |= securesocketsSOCKET_IS_CONNECTED_FLAG;
+                }
+                xSemaphoreGive(xNuWiFi.xWifiSem);
+            }
+        }
     }
 
     /* Initialize TLS if necessary */
@@ -344,7 +371,8 @@ int32_t SOCKETS_Recv( Socket_t xSocket,
         pxSecureSocket = &xSockets[ulSocketNum];
 
         /* Check that send is allowed on the socket. */
-        if ((pxSecureSocket->ulFlags & securesocketsSOCKET_READ_CLOSED_FLAG) == 0) {
+        if (((pxSecureSocket->ulFlags & securesocketsSOCKET_READ_CLOSED_FLAG) == 0) &&
+            ((pxSecureSocket->ulFlags & securesocketsSOCKET_IS_CONNECTED_FLAG) != 0)) {
             if ((pxSecureSocket->ulFlags & securesocketsSOCKET_SECURE_FLAG)) {
                 /* Receive through TLS pipe, if negotiated. */
                 lSocketRet = TLS_Recv(pxSecureSocket->pvTLSContext, pvBuffer, xBufferLength);
@@ -380,14 +408,13 @@ int32_t SOCKETS_Send( Socket_t xSocket,
     uint32_t ulSocketNum = (uint32_t)xSocket;
     int32_t lSocketRet = SOCKETS_SOCKET_ERROR;
 
-    configASSERT((pvBuffer != NULL));
-
     /* Check this is a valid socket */
-    if (prvIsValidSocket(ulSocketNum) == pdTRUE) {
+    if ((prvIsValidSocket(ulSocketNum) == pdTRUE) && (pvBuffer != NULL)) {
         pxSecureSocket = &xSockets[ulSocketNum];
 
         /* Check that send is allowed on the socket. */
-        if ((pxSecureSocket->ulFlags & securesocketsSOCKET_WRITE_CLOSED_FLAG) == 0) {
+        if (((pxSecureSocket->ulFlags & securesocketsSOCKET_WRITE_CLOSED_FLAG) == 0) &&
+            ((pxSecureSocket->ulFlags & securesocketsSOCKET_IS_CONNECTED_FLAG) != 0)) {
             if ((pxSecureSocket->ulFlags & securesocketsSOCKET_SECURE_FLAG)) {
                 /* Send through TLS pipe, if negotiated. */
                 lSocketRet = TLS_Send(pxSecureSocket->pvTLSContext, pvBuffer, xDataLength);
@@ -483,21 +510,27 @@ int32_t SOCKETS_Close( Socket_t xSocket )
             vPortFree(pxSecureSocket->pcServerCertificate);
         }
         /* Cleanup TLS. */
-        if ((pxSecureSocket->ulFlags & securesocketsSOCKET_SECURE_FLAG) != 0UL) {
+        if ((pxSecureSocket->ulFlags & securesocketsSOCKET_SECURE_FLAG) != 0) {
             TLS_Cleanup(pxSecureSocket->pvTLSContext);
         }
 
         pxSecureSocket->xWiFiConn.LinkID = (uint8_t)ulSocketNum;
         if (xSemaphoreTake(xNuWiFi.xWifiSem, xSemaphoreWaitTicks) == pdTRUE) {
-            /* Stop the client connection */
-            if (ESP_WIFI_StopClient(&xNuWiFi.xWifiObject, &pxSecureSocket->xWiFiConn) == ESP_WIFI_STATUS_OK) {
-                /* Return the socket */
-                prvReturnSocket(ulSocketNum);
-
+            if (ESP_WIFI_GetConnStatus(&xNuWiFi.xWifiObject, &pxSecureSocket->xWiFiConn) == ESP_WIFI_STATUS_OK) {
+                /* There is a TCP or UDP connection */
+                if (pxSecureSocket->xWiFiConn.IsConnected == pdTRUE) {
+                    /* Stop the client connection */
+                    ESP_WIFI_StopClient(&xNuWiFi.xWifiObject, &pxSecureSocket->xWiFiConn);
+                }
                 lSocketRet = SOCKETS_ERROR_NONE;
             }
+            /* Reset the socket Ipd buffer */
+            ESP_WIFI_Reset_Ipd(&pxSecureSocket->xWiFiConn);
             xSemaphoreGive(xNuWiFi.xWifiSem);
         }
+
+        /* Return the socket */
+        prvReturnSocket(ulSocketNum);
     } else {
         configPRINTF(("ERROR: Invalid socket number !\n"));
         lSocketRet = SOCKETS_EINVAL;
@@ -525,43 +558,57 @@ int32_t SOCKETS_SetSockOpt( Socket_t xSocket,
         switch (lOptionName) {
         case SOCKETS_SO_SERVER_NAME_INDICATION:
 
-            /* Non-NULL destination string indicates that SNI extension should
-             * be used during TLS negotiation. */
-            pxSecureSocket->pcDestination = ( char * ) pvPortMalloc( 1U + xOptionLength );
+            if ((pxSecureSocket->ulFlags & securesocketsSOCKET_IS_CONNECTED_FLAG) == 0) {
+                /* Non-NULL destination string indicates that SNI extension should
+                 * be used during TLS negotiation. */
+                pxSecureSocket->pcDestination = ( char * ) pvPortMalloc( 1U + xOptionLength );
 
-            if (pxSecureSocket->pcDestination == NULL) {
-                lSocketRet = SOCKETS_ENOMEM;
+                if (pxSecureSocket->pcDestination == NULL) {
+                    lSocketRet = SOCKETS_ENOMEM;
+                } else {
+                    memcpy( pxSecureSocket->pcDestination, pvOptionValue, xOptionLength );
+                    pxSecureSocket->pcDestination[ xOptionLength ] = '\0';
+                }
             } else {
-                memcpy( pxSecureSocket->pcDestination, pvOptionValue, xOptionLength );
-                pxSecureSocket->pcDestination[ xOptionLength ] = '\0';
+                /* SNI must be set before connection is established. */
+                lSocketRet = SOCKETS_SOCKET_ERROR;
             }
-
             break;
 
         case SOCKETS_SO_TRUSTED_SERVER_CERTIFICATE:
 
-            /* Non-NULL server certificate field indicates that the default trust
-             * list should not be used. */
-            pxSecureSocket->pcServerCertificate = ( char * ) pvPortMalloc( xOptionLength );
+            if ((pxSecureSocket->ulFlags & securesocketsSOCKET_IS_CONNECTED_FLAG) == 0) {
+                /* Non-NULL server certificate field indicates that the default trust
+                 * list should not be used. */
+                pxSecureSocket->pcServerCertificate = ( char * ) pvPortMalloc( xOptionLength );
 
-            if (pxSecureSocket->pcServerCertificate == NULL) {
-                lSocketRet = SOCKETS_ENOMEM;
+                if (pxSecureSocket->pcServerCertificate == NULL) {
+                    lSocketRet = SOCKETS_ENOMEM;
+                } else {
+                    memcpy( pxSecureSocket->pcServerCertificate, pvOptionValue, xOptionLength );
+                    pxSecureSocket->ulServerCertificateLength = xOptionLength;
+                }
             } else {
-                memcpy( pxSecureSocket->pcServerCertificate, pvOptionValue, xOptionLength );
-                pxSecureSocket->ulServerCertificateLength = xOptionLength;
+                /* Trusted server certificate must be set before the connection is established. */
+                lSocketRet = SOCKETS_SOCKET_ERROR;
             }
-
             break;
 
         case SOCKETS_SO_REQUIRE_TLS:
 
-            /* Turn on the secure socket flag to indicate that
-             * TLS should be used. */
-            pxSecureSocket->ulFlags |= securesocketsSOCKET_SECURE_FLAG;
+            if ((pxSecureSocket->ulFlags & securesocketsSOCKET_IS_CONNECTED_FLAG) == 0) {
+                /* Turn on the secure socket flag to indicate that
+                 * TLS should be used. */
+                pxSecureSocket->ulFlags |= securesocketsSOCKET_SECURE_FLAG;
+            } else {
+                /* Require TLS must be set before the connection is established. */
+                lSocketRet = SOCKETS_SOCKET_ERROR;
+            }
             break;
 
         case SOCKETS_SO_SNDTIMEO:
         case SOCKETS_SO_RCVTIMEO:
+
             /* pvOptionValue passed should be of TickType_t */
             xTimeout = *((const TickType_t *)pvOptionValue);
 
@@ -577,12 +624,20 @@ int32_t SOCKETS_SetSockOpt( Socket_t xSocket,
             break;
 
         case SOCKETS_SO_NONBLOCK:
-            /* Set timeout to be a small count */
-            pxSecureSocket->xSendTimeout = pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_SEND_TO);
-            pxSecureSocket->xRecvTimeout = pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_RECV_TO);
+
+            if ((pxSecureSocket->ulFlags & securesocketsSOCKET_IS_CONNECTED_FLAG) != 0) {
+                /* Set timeout to be a small count */
+                pxSecureSocket->xSendTimeout = pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_SEND_TO);
+                pxSecureSocket->xRecvTimeout = pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_RECV_TO);
+            } else {
+                /* Non blocking option must be set after the connection is
+                 * established. Non blocking connect is not supported. */
+                lSocketRet = SOCKETS_SOCKET_ERROR;
+            }
             break;
 
         default:
+
             lSocketRet = SOCKETS_ENOPROTOOPT;
             break;
         }
