@@ -1,9 +1,9 @@
 /**************************************************************************//**
  * @file     esp8266_wifi.h
- * @version  V1.00
+ * @version  V1.10
  * @brief    M480 series ESP8266 WiFi driver header file
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * @copyright (C) 2018 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #ifndef __ESP_WIFI_H
 #define __ESP_WIFI_H
@@ -24,23 +24,27 @@
 #include "NuMicro.h"
 
 
-#if 0
+#define NUVOTON_DEBUG   0
+
+#if NUVOTON_DEBUG
     #define Nuvoton_debug_printf( X )    configPRINTF( X )
 #else
     #define Nuvoton_debug_printf( X )
 #endif
 
 #define ESP_WIFI_DATA_SIZE          2048
-#define ESP_WIFI_SEND_SIZE			1024
+#define ESP_WIFI_SEND_SIZE			1200
 
 #define ESP_WIFI_NONBLOCK_SEND_TO   2000
 #define ESP_WIFI_NONBLOCK_RECV_TO   200
+#define ESP_WIFI_SHORT_RECV_TO      10
 
 #define AT_OK_STRING                "OK\r\n"
 #define AT_FAIL_STRING              "FAIL\r\n"
 #define AT_ERROR_STRING             "ERROR\r\n"
 #define AT_SEND_STRING              ">"
 #define AT_RECV_STRING              "+IPD,"
+#define AT_CLOSE_STRING             ",CLOSED"
 
 /* List of commands */
 #define CMD_NONE                    0x00
@@ -53,7 +57,8 @@ typedef enum {
     ESP_WIFI_STATUS_ERROR       = 1,
     ESP_WIFI_STATUS_TIMEOUT     = 2,
     ESP_WIFI_STATUS_SEND        = 3,
-    ESP_WIFI_STATUS_RECV        = 4
+    ESP_WIFI_STATUS_RECV        = 4,
+    ESP_WIFI_STATUS_CLOSE       = 5
 } ESP_WIFI_Status_t;
 
 typedef enum {
@@ -70,6 +75,8 @@ typedef struct {
     uint16_t TcpKeepAlive;
     uint16_t UdpLocalPort;
     uint8_t UdpMode;
+    uint8_t Status;
+    BaseType_t IsConnected;
 } ESP_WIFI_Conn_t;
 
 typedef struct {
@@ -77,7 +84,7 @@ typedef struct {
     uint8_t UartIrq;
     uint32_t UartBaudRate;
 
-    uint8_t CmdData[ESP_WIFI_DATA_SIZE + 1];
+    uint8_t CmdData[ESP_WIFI_DATA_SIZE];
     uint8_t ActiveCmd;
     uint32_t Timeout;
     TickType_t AvailableTick;
@@ -104,7 +111,10 @@ ESP_WIFI_Status_t ESP_WIFI_Disconnect( ESP_WIFI_Object_t * pxObj );
 ESP_WIFI_Status_t ESP_WIFI_Reset( ESP_WIFI_Object_t * pxObj );
 ESP_WIFI_Status_t ESP_WIFI_Scan( ESP_WIFI_Object_t * pxObj, WIFIScanResult_t * pxBuffer, uint8_t ucNumNetworks );
 ESP_WIFI_Status_t ESP_WIFI_GetNetStatus( ESP_WIFI_Object_t * pxObj );
+void ESP_WIFI_Reset_Ipd( ESP_WIFI_Conn_t * pxConn );
+ESP_WIFI_Status_t ESP_WIFI_GetConnStatus( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * pxConn );
 ESP_WIFI_Status_t ESP_WIFI_GetHostIP( ESP_WIFI_Object_t * pxObj, char * pcHost, uint8_t * pucIPAddr );
+ESP_WIFI_Status_t ESP_WIFI_SetMultiConn( ESP_WIFI_Object_t * pxObj, uint8_t mode );
 ESP_WIFI_Status_t ESP_WIFI_StartClient( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t *xConn );
 ESP_WIFI_Status_t ESP_WIFI_StopClient( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t *xConn );
 ESP_WIFI_Status_t ESP_WIFI_Send( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t *xConn, uint8_t *pcBuf, 
