@@ -312,11 +312,16 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
         /* Check RX empty => failed */
         while (RX_BUF_COUNT() == 0) {
             if (xTaskGetTickCount() > xTickTimeout) {
-                if (xTimeout > pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_RECV_TO)) {
-                    configPRINTF(("ERROR: [%s] Reach the timeout %d !!\n", __func__, xTimeout));
+                /* If ESP8266 already receices data, need to wait for data send out complete */
+                if ((strstr(pucRxBuf, "\r\nRecv") > 0) && (strstr(pucRxBuf, "bytes\r\n") > 0)) {
+                    xTickTimeout += pdMS_TO_TICKS(1000);
+                } else {
+                    if (xTimeout > pdMS_TO_TICKS(ESP_WIFI_NONBLOCK_RECV_TO)) {
+                        configPRINTF(("ERROR: [%s] usReadBytes %d reach the timeout %d !!\n", __func__, usReadBytes, xTimeout));
+                    }
+                    ucExit = 1;
+                    break;
                 }
-                ucExit = 1;
-                break;
             }
         }
         if (ucExit == 1) {
@@ -325,8 +330,8 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
 
         /* Get data from RX buffer */
         pucRxBuf[usCount] = RX_BUF_POP();
-        if (xTickTimeout - xTaskGetTickCount() < 5) {
-            xTickTimeout = xTaskGetTickCount() + 10;
+        if (xTickTimeout - xTaskGetTickCount() < pdMS_TO_TICKS(5)) {
+            xTickTimeout = xTaskGetTickCount() + pdMS_TO_TICKS(10);
         }
 
         /* Check the end of the message to reduce the response time */
@@ -371,7 +376,7 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
                 usIpdLength = (uint16_t)atoi(pcPtr);
                 if (xWifiIpd[ucIpdLinkID].DataLength + usIpdLength > sizeof(xWifiIpd[ucIpdLinkID].Data)) {
                     if (xWifiIpd[ucIpdLinkID].DataLength < sizeof(xWifiIpd[ucIpdLinkID].Data)) {
-                        configPRINTF(("ERROR: [%s] Reach the Ipd maximum size !!\n", __func__));
+                        configPRINTF(("ERROR: [%s] Get ipd %d bytes reach the maximum size !!\n", __func__, usIpdLength));
                     }
                 }
                 if (pxObj->ActiveCmd != CMD_RECV) {
@@ -401,8 +406,11 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
                     }
                     ucExit = 1;
                 } else {
-                    usReadBytes = usCount + usIpdLength + 1;
-
+                    if (usReadBytes >= (usCount + usIpdLength + 1)) {
+                        usReadBytes = usCount + usIpdLength + 1;
+                    } else {
+                        configPRINTF(("ERROR: [%s] Get ipd %d bytes cause a buffer overflow !!\n", __func__, usIpdLength));
+                    }
                 }
                 xRet = ESP_WIFI_STATUS_RECV;
             }
