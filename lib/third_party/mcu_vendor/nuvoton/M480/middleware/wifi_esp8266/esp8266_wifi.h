@@ -32,7 +32,7 @@
     #define Nuvoton_debug_printf( X )
 #endif
 
-#define ESP_WIFI_DATA_SIZE          2048
+#define ESP_WIFI_DATA_SIZE          3072
 #define ESP_WIFI_SEND_SIZE			1200
 
 #define ESP_WIFI_NONBLOCK_SEND_TO   2000
