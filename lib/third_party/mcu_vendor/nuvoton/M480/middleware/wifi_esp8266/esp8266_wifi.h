@@ -32,8 +32,25 @@
     #define Nuvoton_debug_printf( X )
 #endif
 
-#define ESP_WIFI_DATA_SIZE          3072
-#define ESP_WIFI_SEND_SIZE			1200
+#ifdef wificonfigMAX_AT_COMMAND_SIZE
+    #define ESP_WIFI_DATA_SIZE      wificonfigMAX_AT_COMMAND_SIZE
+#else
+    #define ESP_WIFI_DATA_SIZE      3072
+#endif
+
+#ifdef wificonfigMAX_SEND_SIZE
+    #define ESP_WIFI_SEND_SIZE      wificonfigMAX_SEND_SIZE
+#else
+    #define ESP_WIFI_SEND_SIZE      1200
+#endif
+
+#ifdef wificonfigMAX_RECV_BUF_SIZE
+    #define ESP_WIFI_IPD_SIZE       wificonfigMAX_RECV_BUF_SIZE
+#else
+    #define ESP_WIFI_IPD_SIZE       ESP_WIFI_DATA_SIZE
+#endif
+
+#define ESP_WIFI_IPD_HIGH_LEVEL     (ESP_WIFI_IPD_SIZE - 1024)
 
 #define ESP_WIFI_NONBLOCK_SEND_TO   2000
 #define ESP_WIFI_NONBLOCK_RECV_TO   200
@@ -100,7 +117,7 @@ typedef struct {
 typedef struct {
 	uint8_t LinkID;
     uint16_t DataLength;
-    uint8_t Data[ESP_WIFI_DATA_SIZE + 1];
+    uint8_t Data[ESP_WIFI_IPD_SIZE + 1];
 } ESP_WIFI_IPD_t;
 
 
@@ -122,6 +139,7 @@ ESP_WIFI_Status_t ESP_WIFI_Send( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t *xCo
 ESP_WIFI_Status_t ESP_WIFI_Recv( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * pxConn, uint8_t * pcBuf, 
                                  uint16_t usReqLen, uint16_t * usRecvLen, uint32_t ulTimeout );
 BaseType_t ESP_WIFI_IsConnected( ESP_WIFI_Object_t * pxObj );
+uint16_t ESP_WIFI_Get_Ipd_Size( ESP_WIFI_Conn_t * pxConn );
 
 
 #ifdef __cplusplus

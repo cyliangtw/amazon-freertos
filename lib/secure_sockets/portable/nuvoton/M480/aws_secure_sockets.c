@@ -1,5 +1,5 @@
 /*
- * Amazon FreeRTOS Secure Socket V1.0.0
+ * Amazon FreeRTOS Secure Socket for Nuvoton NuMaker-IoT-M487 V1.0.0
  * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -182,6 +182,10 @@ static BaseType_t prvNetworkSend( void * pvContext,
     }
 
     //taskYIELD();
+    if (ESP_WIFI_Get_Ipd_Size(&(pxSecureSocket->xWiFiConn)) > ESP_WIFI_IPD_HIGH_LEVEL) {
+        /* Allow other tasks can process the received data */
+        vTaskDelay(100);
+    }
 
     return xSocketRet;
 }
@@ -202,7 +206,7 @@ static BaseType_t prvNetworkRecv( void * pvContext,
     /* Shortcut for socket access */
     pxSecureSocket = &xSockets[ulSocketNum];
 
-   xTickTimeout = xTaskGetTickCount() + pxSecureSocket->xRecvTimeout;
+    xTickTimeout = xTaskGetTickCount() + pxSecureSocket->xRecvTimeout;
 
     for ( ; ; ) {
         if (xSemaphoreTake(xNuWiFi.xWifiSem, xTickTimeout) == pdTRUE) {
