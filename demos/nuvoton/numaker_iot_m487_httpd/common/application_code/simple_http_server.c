@@ -25,15 +25,11 @@
 
 
 /*
- * FreeRTOS tasks are used with FreeRTOS+TCP to create a TCP echo server.  Echo
- * clients are also created, but the echo clients use Windows threads (as
- * opposed to FreeRTOS tasks) and use the Windows TCP library (Winsocks).  This
- * creates a communication between the FreeRTOS+TCP TCP/IP stack and the Windows
+ * FreeRTOS tasks are used with FreeRTOS+TCP to create a HTTP server.  
+ * Use the Windows Web browser to creates a communication between
+ * the FreeRTOS+TCP TCP/IP stack and the Windows
  * TCP/IP stack.
  *
- * See the following web page for essential demo usage and configuration
- * details:
- * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/examples_FreeRTOS_simulator.html
  */
 
 /* Standard includes. */
@@ -52,20 +48,16 @@
 #include "aws_demo_config.h"
 
 /* Specifies the size of the data sent to the server in MSS units. */
-#define tcpechoBUFFER_SIZE_MULTIPLIER    3
+#define httpBUFFER_SIZE_MULTIPLIER    3
 
 /* The maximum time to wait for a closing socket to close. */
-#define tcpechoSHUTDOWN_DELAY            ( pdMS_TO_TICKS( 5000 ) )
+#define httpSHUTDOWN_DELAY            ( pdMS_TO_TICKS( 5000 ) )
 
-/* The standard echo port number. */
-//#ifdef configTCP_ECHO_CLIENT_PORT
-//    #define tcpechoPORT_NUMBER    configTCP_ECHO_CLIENT_PORT
-//#else
-    #define tcpechoPORT_NUMBER    80
-//#endif
+/* The standard port number. */
+#define httpPORT_NUMBER    80
 
 /* The size of the Rx and Tx buffers. */
-#define tcpechoBUFFER_SIZE    ( ipconfigTCP_MSS * tcpechoBUFFER_SIZE_MULTIPLIER )
+#define httpBUFFER_SIZE    ( ipconfigTCP_MSS * httpBUFFER_SIZE_MULTIPLIER )
 
 /*-----------------------------------------------------------*/
 
@@ -93,7 +85,7 @@ static uint32_t ulConnectionCount = 0;
 
 void vStartSimpleHttpServerTasks( void )
 {
-    /* Create the TCP echo server.  The echo server uses FreeRTOS+TCP through
+    /* Create the HTTP server.  The server uses FreeRTOS+TCP through
      * the spoofed IP and MAC address.  The WinSock client tasks are created from
      * inside the listening task. */
     xTaskCreate( prvConnectionListeningTask,
@@ -139,7 +131,7 @@ static void prvConnectionListeningTask( void * pvParameters )
 
     /* Bind the socket to the port that the client task will send to, then
      * listen for incoming connections. */
-    xBindAddress.sin_port = tcpechoPORT_NUMBER;
+    xBindAddress.sin_port = httpPORT_NUMBER;
     xBindAddress.sin_port = FreeRTOS_htons( xBindAddress.sin_port );
     FreeRTOS_bind( xListeningSocket, &xBindAddress, sizeof( xBindAddress ) );
     FreeRTOS_listen( xListeningSocket, xBacklog );
@@ -248,7 +240,7 @@ static void prvServerConnectionInstance( void * pvParameters )
         {
             break;
         }
-    } while( ( xTaskGetTickCount() - xTimeOnShutdown ) < tcpechoSHUTDOWN_DELAY );
+    } while( ( xTaskGetTickCount() - xTimeOnShutdown ) < httpSHUTDOWN_DELAY );
 
     /* Finished with the socket and the task. */
     FreeRTOS_closesocket( xConnectedSocket );
@@ -256,7 +248,7 @@ static void prvServerConnectionInstance( void * pvParameters )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xAreTCPEchoServersStillRunning( void )
+BaseType_t xAreHttpServersStillRunning( void )
 {
     static uint32_t ulLastConnectionCount = 0;
     BaseType_t xReturn = pdPASS;
