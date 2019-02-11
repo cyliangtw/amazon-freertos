@@ -1,0 +1,14 @@
+.\obj\entropy.o: ..\..\..\..\lib\third_party\mbedtls\library\entropy.c
+.\obj\entropy.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\entropy.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\entropy.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\entropy.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/entropy.h
+.\obj\entropy.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\entropy.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/sha256.h
+.\obj\entropy.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\entropy.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/entropy_poll.h
+.\obj\entropy.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\obj\entropy.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/platform.h
+.\obj\entropy.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\entropy.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\obj\entropy.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h

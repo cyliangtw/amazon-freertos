@@ -1,0 +1,11 @@
+.\obj\ecdh.o: ..\..\..\..\lib\third_party\mbedtls\library\ecdh.c
+.\obj\ecdh.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\ecdh.o: ..\common\application_code\nuvoton_code\mbedtls_user_config.h
+.\obj\ecdh.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\ecdh.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\ecdh.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/ecdh.h
+.\obj\ecdh.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/ecp.h
+.\obj\ecdh.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/bignum.h
+.\obj\ecdh.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\ecdh.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\ecdh.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

@@ -1,0 +1,9 @@
+.\obj\platform.o: ..\..\..\..\lib\third_party\mbedtls\library\platform.c
+.\obj\platform.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\platform.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\platform.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\platform.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/platform.h
+.\obj\platform.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\platform.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\obj\platform.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h
+.\obj\platform.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h

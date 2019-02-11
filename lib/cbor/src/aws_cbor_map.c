@@ -1,5 +1,5 @@
 /*
- * Amazon FreeRTOS CBOR Library V1.0.0
+ * Amazon FreeRTOS CBOR Library V1.0.1
  * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -25,137 +25,167 @@
 #include "aws_cbor_internals.h"
 #include <assert.h>
 
-void CBOR_OpenMap(cbor_handle_t pxCbor_data)
+void CBOR_OpenMap( CBORHandle_t xCborData )
 {
-    assert(NULL != pxCbor_data);
+    assert( NULL != xCborData );
 
-    CBOR_AssignAndIncrementCursor(pxCbor_data, CBOR_MAP_OPEN);
+    CBOR_AssignAndIncrementCursor( xCborData, CBOR_MAP_OPEN );
 }
 
-void CBOR_CloseMap(cbor_handle_t pxCbor_data)
+void CBOR_CloseMap( CBORHandle_t xCborData )
 {
-    assert(NULL != pxCbor_data);
+    assert( NULL != xCborData );
 
-    CBOR_AssignAndIncrementCursor(pxCbor_data, CBOR_BREAK);
-    pxCbor_data->map_end = pxCbor_data->cursor - 1;
+    CBOR_AssignAndIncrementCursor( xCborData, CBOR_BREAK );
+    xCborData->pxMapEnd = xCborData->pxCursor - 1;
 }
 
-bool CBOR_KeyIsMatch(cbor_handle_t pxCbor_data, const char *pcKey)
+bool CBOR_KeyIsMatch( CBORHandle_t xCborData,
+                      const char * pcKey )
 {
-    assert(NULL != pxCbor_data);
-    assert(NULL != pcKey);
+    assert( NULL != xCborData );
+    assert( NULL != pcKey );
 
     bool xIs_match = false;
-    if (0 == CBOR_StringCompare(pxCbor_data, pcKey)) {
+
+    if( 0 == CBOR_StringCompare( xCborData, pcKey ) )
+    {
         xIs_match = true;
     }
+
     return xIs_match;
 }
-void CBOR_SearchForKey(cbor_handle_t pxCbor_data, const char *pcKey)
+void CBOR_SearchForKey( CBORHandle_t xCborData,
+                        const char * pcKey )
 {
-    assert(NULL != pxCbor_data);
-    assert(NULL != pcKey);
-    assert(*(pxCbor_data->cursor) != 0);
-    assert(*(pxCbor_data->cursor) != CBOR_MAP_OPEN);
+    assert( NULL != xCborData );
+    assert( NULL != pcKey );
+    assert( *( xCborData->pxCursor ) != 0 );
+    assert( *( xCborData->pxCursor ) != CBOR_MAP_OPEN );
 
-    while (!((CBOR_BREAK == *(pxCbor_data->cursor))
-             || true == CBOR_KeyIsMatch(pxCbor_data, pcKey))) {
-        CBOR_NextKey(pxCbor_data);
+    while( !( ( CBOR_BREAK == *( xCborData->pxCursor ) ) ||
+              true == CBOR_KeyIsMatch( xCborData, pcKey ) ) )
+    {
+        CBOR_NextKey( xCborData );
     }
 }
-void CBOR_AppendKey(cbor_handle_t pxCbor_data, const char *pcKey,
-    write_function_t pxWrite_function, const void *pxValue)
+void CBOR_AppendKey( CBORHandle_t xCborData,
+                     const char * pcKey,
+                     write_function_t xWriteFunction,
+                     const void * pvValue )
 {
-    assert(NULL != pxCbor_data);
-    assert(NULL != pcKey);
-    assert(NULL != pxWrite_function);
-    assert(NULL != pxValue);
+    assert( NULL != xCborData );
+    assert( NULL != pcKey );
+    assert( NULL != xWriteFunction );
+    assert( NULL != pvValue );
 
-    pxCbor_data->cursor = pxCbor_data->map_end;
+    xCborData->pxCursor = xCborData->pxMapEnd;
     /* Key not found, at end of map */
-    assert(CBOR_BREAK == *(pxCbor_data->cursor));
+    assert( CBOR_BREAK == *( xCborData->pxCursor ) );
     /* This overwrites map close... */
-    CBOR_WriteString(pxCbor_data, pcKey);
-    CBOR_CloseMap(pxCbor_data);
-    pxCbor_data->cursor--;
+    CBOR_WriteString( xCborData, pcKey );
+    CBOR_CloseMap( xCborData );
+    xCborData->pxCursor--;
 
-    pxWrite_function(pxCbor_data, pxValue);
+    xWriteFunction( xCborData, pvValue );
 
     /* ...So need to reclose it here. */
-    CBOR_CloseMap(pxCbor_data);
+    CBOR_CloseMap( xCborData );
 }
 
-void CBOR_AssignKey(cbor_handle_t pxCbor_data, const char *pcKey,
-    write_function_t pxWrite_function, const void *pxValue)
+void CBOR_AssignKey( CBORHandle_t xCborData,
+                     const char * pcKey,
+                     write_function_t xWriteFunction,
+                     const void * pvValue )
 {
-    assert(NULL != pxCbor_data);
-    assert(NULL != pcKey);
-    assert(NULL != pxWrite_function);
-    assert(NULL != pxValue);
+    assert( NULL != xCborData );
+    assert( NULL != pcKey );
+    assert( NULL != xWriteFunction );
+    assert( NULL != pvValue );
 
-    (pxCbor_data->err)    = eCBOR_ERR_DEFAULT_ERROR;
-    (pxCbor_data->cursor) = (pxCbor_data->buffer_start);
+    ( xCborData->xError ) = eCborErrDefaultError;
+    ( xCborData->pxCursor ) = ( xCborData->pxBufferStart );
 
-    if (CBOR_MAP_OPEN == *(pxCbor_data->cursor)) {
-        CBOR_OpenMap(pxCbor_data);
-        CBOR_SearchForKey(pxCbor_data, pcKey);
+    if( CBOR_MAP_OPEN == *( xCborData->pxCursor ) )
+    {
+        CBOR_OpenMap( xCborData );
+        CBOR_SearchForKey( xCborData, pcKey );
 
-        if (CBOR_KeyIsMatch(pxCbor_data, pcKey)) {
+        if( CBOR_KeyIsMatch( xCborData, pcKey ) )
+        {
             /* Key was found */
-            CBOR_Next(pxCbor_data);
-            pxWrite_function(pxCbor_data, pxValue);
-        } else {
-            CBOR_AppendKey(pxCbor_data, pcKey, pxWrite_function, pxValue);
+            CBOR_Next( xCborData );
+            xWriteFunction( xCborData, pvValue );
         }
-    } else {
-        (pxCbor_data->err) = eCBOR_ERR_UNSUPPORTED_READ_OPERATION;
+        else
+        {
+            CBOR_AppendKey( xCborData, pcKey, xWriteFunction, pvValue );
+        }
+    }
+    else
+    {
+        ( xCborData->xError ) = eCborErrUnsupportedReadOperation;
     }
 }
 
-cbor_ssize_t CBOR_MapSize(const cbor_byte_t *pxPtr)
+cbor_ssize_t CBOR_MapSize( const cbor_byte_t * pxPtr )
 {
-    assert(NULL != pxPtr);
+    assert( NULL != pxPtr );
 
-    const cbor_byte_t *pxCursor_start = pxPtr;
-    while (CBOR_BREAK != *(pxPtr)) {
-        pxPtr = CBOR_NextKeyPtr(pxPtr);
+    const cbor_byte_t * pxCursor_start = pxPtr;
+
+    while( CBOR_BREAK != *( pxPtr ) )
+    {
+        pxPtr = CBOR_NextKeyPtr( pxPtr );
     }
+
     cbor_ssize_t xSize = pxPtr - pxCursor_start + 1;
+
     return xSize;
 }
 
-void CBOR_WriteMap(cbor_handle_t pxCbor_data, const void *pxInput)
+void CBOR_WriteMap( CBORHandle_t xCborData,
+                    const void * pvInput )
 {
-    assert(NULL != pxCbor_data);
-    assert(NULL != pxInput);
+    assert( NULL != xCborData );
+    assert( NULL != pvInput );
 
-    const struct CborData_s *pxMap       = pxInput;
-    const cbor_byte_t *      pxMap_start = pxMap->buffer_start;
+    const struct CborData_s * pxMap = pvInput;
+    const cbor_byte_t * pxMap_start = pxMap->pxBufferStart;
 
-    cbor_ssize_t xMap_size = CBOR_MapSize(pxMap_start);
+    cbor_ssize_t xMap_size = CBOR_MapSize( pxMap_start );
 
-    CBOR_ValueResize(pxCbor_data, xMap_size);
+    CBOR_ValueResize( xCborData, xMap_size );
 
-    CBOR_MemCopy(pxCbor_data, pxMap_start, xMap_size);
+    CBOR_MemCopy( xCborData, pxMap_start, xMap_size );
 }
 
-cbor_handle_t CBOR_ReadMap(cbor_handle_t pxCbor_data)
+CBORHandle_t CBOR_ReadMap( CBORHandle_t xCborData )
 {
-    assert(NULL != pxCbor_data);
+    assert( NULL != xCborData );
 
-    cbor_byte_t xData_head  = *(pxCbor_data->cursor);
+    cbor_byte_t xData_head = *( xCborData->pxCursor );
     cbor_byte_t xMajor_type = xData_head & CBOR_MAJOR_TYPE_MASK;
-    if (CBOR_MAP != xMajor_type) {
-        pxCbor_data->err = eCBOR_ERR_READ_TYPE_MISMATCH;
+
+    if( CBOR_MAP != xMajor_type )
+    {
+        xCborData->xError = eCborErrReadTypeMismatch;
+
         return NULL;
     }
-    cbor_handle_t pxMap = CBOR_New(0);
-    if (NULL == pxMap) {
-        pxCbor_data->err = eCBOR_ERR_INSUFFICENT_SPACE;
+
+    CBORHandle_t xMap = CBOR_New( 0 );
+
+    if( NULL == xMap )
+    {
+        xCborData->xError = eCborErrInsufficentSpace;
+
         return NULL;
-    };
-    cbor_ssize_t xMap_size = CBOR_MapSize(pxCbor_data->cursor);
-    CBOR_MemCopy(pxMap, pxCbor_data->cursor, xMap_size);
-    pxMap->map_end = pxMap->cursor - 1;
-    return pxMap;
+    }
+
+    cbor_ssize_t xMap_size = CBOR_MapSize( xCborData->pxCursor );
+    CBOR_MemCopy( xMap, xCborData->pxCursor, xMap_size );
+    xMap->pxMapEnd = xMap->pxCursor - 1;
+
+    return xMap;
 }

@@ -1,0 +1,9 @@
+.\obj\entropy_poll.o: ..\..\..\..\lib\third_party\mbedtls\library\entropy_poll.c
+.\obj\entropy_poll.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\entropy_poll.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\entropy_poll.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\entropy_poll.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/entropy.h
+.\obj\entropy_poll.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\entropy_poll.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/sha256.h
+.\obj\entropy_poll.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\entropy_poll.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/entropy_poll.h

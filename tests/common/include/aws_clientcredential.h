@@ -35,12 +35,12 @@
 /*
  * MQTT Broker endpoint.
  */
-static const char clientcredentialMQTT_BROKER_ENDPOINT[] = "a2znuad6lddn61.beta.us-east-1.iot.amazonaws.com";
+static const char clientcredentialMQTT_BROKER_ENDPOINT[] = "a3707qhtwpfdg4.iot.us-west-2.amazonaws.com";
 
 
 /* Use of a "define" and not a "static const" here to be able to
  * use pre-compile concatenation on the string. */
-#define clientcredentialIOT_THING_NAME               "Paste AWS IoT Thing name here."
+#define clientcredentialIOT_THING_NAME "idt-8194846004853192534"
 
 /*
  * Port number the MQTT broker is using.
@@ -55,12 +55,12 @@ static const char clientcredentialMQTT_BROKER_ENDPOINT[] = "a2znuad6lddn61.beta.
 /*
  * Wi-Fi network to join.
  */
-#define clientcredentialWIFI_SSID                    "Paste Wi-Fi SSID here."
+#define clientcredentialWIFI_SSID "IoT-PoC"
 
 /*
  * Password needed to join Wi-Fi network.
  */
-#define clientcredentialWIFI_PASSWORD                "Paste Wi-Fi password here."
+#define clientcredentialWIFI_PASSWORD "a12345678b"
 
 /**
  * @brief Security type
@@ -68,17 +68,6 @@ static const char clientcredentialMQTT_BROKER_ENDPOINT[] = "a2znuad6lddn61.beta.
  * Possible values are - eWiFiSecurityOpen, eWiFiSecurityWEP, eWiFiSecurityWPA,
  * eWiFiSecurityWPA2
  */
-#define clientcredentialWIFI_SECURITY                eWiFiSecurityWPA2
-
-/*
- * Length of device certificate included from aws_clientcredential_keys.h .
- */
-static const uint32_t clientcredentialCLIENT_CERTIFICATE_LENGTH = sizeof( clientcredentialCLIENT_CERTIFICATE_PEM );
-
-/*
- * Length of device private key included from aws_clientcredential_keys.h .
- */
-
-static const uint32_t clientcredentialCLIENT_PRIVATE_KEY_LENGTH = sizeof( clientcredentialCLIENT_PRIVATE_KEY_PEM );
+#define clientcredentialWIFI_SECURITY eWiFiSecurityWPA2
 
 #endif /* ifndef __AWS_CLIENTCREDENTIAL__H__ */

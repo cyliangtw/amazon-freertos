@@ -1,5 +1,5 @@
 /*
-FreeRTOS Kernel V10.0.1
+FreeRTOS Kernel V1.1.4
 Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -106,7 +106,7 @@ extern void vLoggingPrint( const char * pcMessage );
 
 /* Sets the length of the buffers into which logging messages are written - so
  * also defines the maximum length of each log message. */
-#define configLOGGING_MAX_MESSAGE_LENGTH            128
+#define configLOGGING_MAX_MESSAGE_LENGTH            256
 
 /* Set to 1 to prepend each log message with a message number, the task name,
  * and a time stamp. */

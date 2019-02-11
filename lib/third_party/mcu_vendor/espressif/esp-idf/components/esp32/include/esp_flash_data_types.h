@@ -21,15 +21,25 @@ extern "C"
 {
 #endif
 
-#define ESP_PARTITION_TABLE_ADDR 0x8000
 #define ESP_PARTITION_MAGIC 0x50AA
+#define ESP_PARTITION_MAGIC_MD5 0xEBEB
+
+/* Reserve last 3 bits to accomodate different OTA states */
+typedef enum {
+    ESP_OTA_IMG_NEW             = 0x0U,
+    ESP_OTA_IMG_PENDING_VERIFY  = 0x1U,
+    ESP_OTA_IMG_VALID           = 0x2U,
+    ESP_OTA_IMG_INVALID         = 0x3U,
+    ESP_OTA_IMG_ABORTED         = 0x4U,
+} esp_ota_img_flags_t;
 
 /* OTA selection structure (two copies in the OTA data partition.)
    Size of 32 bytes is friendly to flash encryption */
 typedef struct {
     uint32_t ota_seq;
-    uint8_t  seq_label[24];
-    uint32_t crc; /* CRC32 of ota_seq field only */
+    uint8_t  seq_label[20];
+    uint32_t ota_flags;         /* Reserved 4 bytes for ota flags - rollback feature */
+    uint32_t crc;               /* CRC32 of ota_seq field only */
 } esp_ota_select_entry_t;
 
 
@@ -60,6 +70,7 @@ typedef struct {
 #define PART_SUBTYPE_DATA_OTA 0x00
 #define PART_SUBTYPE_DATA_RF  0x01
 #define PART_SUBTYPE_DATA_WIFI 0x02
+#define PART_SUBTYPE_DATA_NVS_KEYS 0x04
 
 #define PART_TYPE_END 0xff
 #define PART_SUBTYPE_END 0xff

@@ -1,5 +1,5 @@
 /*
- * Amazon FreeRTOS CBOR Library V1.0.0
+ * Amazon FreeRTOS CBOR Library V1.0.1
  * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -25,74 +25,79 @@
 #include "aws_cbor_internals.h"
 #include "unity_fixture.h"
 
-cbor_handle_t cbor_data;
+CBORHandle_t xCborData;
 
-TEST_GROUP(aws_cbor_print);
+TEST_GROUP( aws_cbor_print );
 
-TEST_SETUP(aws_cbor_print)
+TEST_SETUP( aws_cbor_print )
 {
-    cbor_data = CBOR_New(0);
+    xCborData = CBOR_New( 0 );
 }
 
-TEST_TEAR_DOWN(aws_cbor_print)
+TEST_TEAR_DOWN( aws_cbor_print )
 {
-    CBOR_Delete(&cbor_data);
+    CBOR_Delete( &xCborData );
 }
 
-TEST_GROUP_RUNNER(aws_cbor_print)
+TEST_GROUP_RUNNER( aws_cbor_print )
 {
-    RUN_TEST_CASE(aws_cbor_print, AsString_prints_empty_map);
-    RUN_TEST_CASE(aws_cbor_print, AsString_prints_key_followed_by_int_value);
-    RUN_TEST_CASE(aws_cbor_print, AsString_prints_key_followed_by_string_value);
-    RUN_TEST_CASE(aws_cbor_print, AsString_prints_key_followed_by_map_value);
+    RUN_TEST_CASE( aws_cbor_print, AsString_prints_empty_map );
+    RUN_TEST_CASE( aws_cbor_print, AsString_prints_key_followed_by_int_value );
+    RUN_TEST_CASE( aws_cbor_print, AsString_prints_key_followed_by_string_value );
+    RUN_TEST_CASE( aws_cbor_print, AsString_prints_key_followed_by_map_value );
     RUN_TEST_CASE(
-        aws_cbor_print, AsString_prints_commas_between_key_value_pairs);
+        aws_cbor_print, AsString_prints_commas_between_key_value_pairs );
 }
 
-TEST(aws_cbor_print, AsString_prints_empty_map)
+TEST( aws_cbor_print, AsString_prints_empty_map )
 {
-    char *expected = "{}";
-    char *result   = CBOR_AsString(cbor_data);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
-    free(result);
+    char * pcExpected = "{}";
+    char * pcResult = CBOR_AsString( xCborData );
+
+    TEST_ASSERT_EQUAL_STRING( pcExpected, pcResult );
+    free( pcResult );
 }
 
-TEST(aws_cbor_print, AsString_prints_key_followed_by_int_value)
+TEST( aws_cbor_print, AsString_prints_key_followed_by_int_value )
 {
-    char *expected = "{\"answer\":42}";
-    CBOR_AppendKeyWithInt(cbor_data, "answer", 42);
-    char *result = CBOR_AsString(cbor_data);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
-    free(result);
+    char * pcExpected = "{\"answer\":42}";
+
+    CBOR_AppendKeyWithInt( xCborData, "answer", 42 );
+    char * pcResult = CBOR_AsString( xCborData );
+    TEST_ASSERT_EQUAL_STRING( pcExpected, pcResult );
+    free( pcResult );
 }
 
-TEST(aws_cbor_print, AsString_prints_key_followed_by_string_value)
+TEST( aws_cbor_print, AsString_prints_key_followed_by_string_value )
 {
-    char *expected = "{\"hello\":\"world\"}";
-    CBOR_AppendKeyWithString(cbor_data, "hello", "world");
-    char *result = CBOR_AsString(cbor_data);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
-    free(result);
+    char * pcExpected = "{\"hello\":\"world\"}";
+
+    CBOR_AppendKeyWithString( xCborData, "hello", "world" );
+    char * pcResult = CBOR_AsString( xCborData );
+    TEST_ASSERT_EQUAL_STRING( pcExpected, pcResult );
+    free( pcResult );
 }
 
-TEST(aws_cbor_print, AsString_prints_key_followed_by_map_value)
+TEST( aws_cbor_print, AsString_prints_key_followed_by_map_value )
 {
-    char *        expected  = "{\"a map\":{\"key\":\"value\"}}";
-    cbor_handle_t inner_map = CBOR_New(0);
-    CBOR_AppendKeyWithString(inner_map, "key", "value");
-    CBOR_AppendKeyWithMap(cbor_data, "a map", inner_map);
-    CBOR_Delete(&inner_map);
-    char *result = CBOR_AsString(cbor_data);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
-    free(result);
+    char * pcExpected = "{\"a map\":{\"key\":\"value\"}}";
+    CBORHandle_t xInnerMap = CBOR_New( 0 );
+
+    CBOR_AppendKeyWithString( xInnerMap, "key", "value" );
+    CBOR_AppendKeyWithMap( xCborData, "a map", xInnerMap );
+    CBOR_Delete( &xInnerMap );
+    char * pcResult = CBOR_AsString( xCborData );
+    TEST_ASSERT_EQUAL_STRING( pcExpected, pcResult );
+    free( pcResult );
 }
 
-TEST(aws_cbor_print, AsString_prints_commas_between_key_value_pairs)
+TEST( aws_cbor_print, AsString_prints_commas_between_key_value_pairs )
 {
-    char *expected = "{\"a\":1,\"b\":2}";
-    CBOR_AppendKeyWithInt(cbor_data, "a", 1);
-    CBOR_AppendKeyWithInt(cbor_data, "b", 2);
-    char *result = CBOR_AsString(cbor_data);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
-    free(result);
+    char * pcExpected = "{\"a\":1,\"b\":2}";
+
+    CBOR_AppendKeyWithInt( xCborData, "a", 1 );
+    CBOR_AppendKeyWithInt( xCborData, "b", 2 );
+    char * pcResult = CBOR_AsString( xCborData );
+    TEST_ASSERT_EQUAL_STRING( pcExpected, pcResult );
+    free( pcResult );
 }

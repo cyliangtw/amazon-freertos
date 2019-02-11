@@ -1,5 +1,5 @@
 /*
- * Amazon FreeRTOS V1.0.0
+ * Amazon FreeRTOS V1.1.4
  * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -40,7 +40,7 @@
 #define testrunnerFULL_CRYPTO_ENABLED              0
 #define testrunnerFULL_MQTT_STRESS_TEST_ENABLED    0
 #define testrunnerFULL_MQTT_AGENT_ENABLED          0
-#define testrunnerFULL_TCP_ENABLED                 0
+#define testrunnerFULL_TCP_ENABLED                 1
 #define testrunnerFULL_GGD_ENABLED                 0
 #define testrunnerFULL_GGD_HELPER_ENABLED          0
 #define testrunnerFULL_SHADOW_ENABLED              0

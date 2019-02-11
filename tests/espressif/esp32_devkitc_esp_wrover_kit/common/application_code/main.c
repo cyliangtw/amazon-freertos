@@ -1,5 +1,5 @@
 /*
- * Amazon FreeRTOS V1.2.4
+ * Amazon FreeRTOS V1.1.4
  * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -35,9 +35,11 @@
 #include "aws_logging_task.h"
 #include "aws_wifi.h"
 #include "aws_clientcredential.h"
+#include "aws_dev_mode_key_provisioning.h"
 #include "nvs_flash.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
+#include "aws_test_utils.h"
 
 
 #include "esp_system.h"
@@ -147,6 +149,25 @@ int app_main( void )
             ucDNSServerAddress,
             ucMACAddress );
 
+    if( SYSTEM_Init() == pdPASS )
+    {
+        /* Connect to the wifi before running the tests. */
+        prvWifiConnect();
+
+        /* A simple example to demonstrate key and certificate provisioning in
+         * microcontroller flash using PKCS#11 interface. This should be replaced
+         * by production ready key provisioning mechanism. */
+        vDevModeKeyProvisioning();
+
+        /* Create the task to run unit tests. */
+        xTaskCreate( TEST_RUNNER_RunTests_task,
+                "RunTests_task",
+                mainTEST_RUNNER_TASK_STACK_SIZE,
+                NULL,
+                tskIDLE_PRIORITY + 5,
+                NULL );
+    }
+
     /* Start the scheduler.  Initialization that requires the OS to be running,
      * including the WiFi initialization, is performed in the RTOS daemon task
      * startup hook. */
@@ -161,7 +182,7 @@ static void prvMiscInitialization( void )
 {
  	// Initialize NVS
 	esp_err_t ret = nvs_flash_init();
-	if (ret == ESP_ERR_NVS_NO_FREE_PAGES) {
+	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
 		ESP_ERROR_CHECK(nvs_flash_erase());
 		ret = nvs_flash_init();
 	}
@@ -171,30 +192,19 @@ static void prvMiscInitialization( void )
 
 void vApplicationDaemonTaskStartupHook( void )
 {
-    if( SYSTEM_Init() == pdPASS )
-    {
-        /* Connect to the wifi before running the tests. */
-        prvWifiConnect();
-
-        /* Create the task to run unit tests. */
-        xTaskCreate( TEST_RUNNER_RunTests_task,
-                "RunTests_task",
-                mainTEST_RUNNER_TASK_STACK_SIZE,
-                NULL,
-                tskIDLE_PRIORITY + 5,
-                NULL );
-    }
 }
 /*-----------------------------------------------------------*/
 
 void prvWifiConnect( void )
 {
     WIFINetworkParams_t xJoinAPParams;
-    WIFIReturnCode_t xWifiStatus;
+    WIFIReturnCode_t eWiFiStatus;
+    uint32_t ulInitialRetryPeriodMs = 500;
+    BaseType_t xMaxRetries = 6;
 
-    xWifiStatus = WIFI_On();
+    eWiFiStatus = WIFI_On();
 
-    if( xWifiStatus == eWiFiSuccess )
+    if( eWiFiStatus == eWiFiSuccess )
     {
         configPRINTF( ( "WiFi module initialized. Connecting to AP %s\r\n", clientcredentialWIFI_SSID ) );
     }
@@ -214,15 +224,16 @@ void prvWifiConnect( void )
     xJoinAPParams.ucPasswordLength = sizeof( clientcredentialWIFI_PASSWORD );
     xJoinAPParams.xSecurity = clientcredentialWIFI_SECURITY;
 
-    xWifiStatus = WIFI_ConnectAP( &( xJoinAPParams ) );
+    RETRY_EXPONENTIAL( eWiFiStatus = WIFI_ConnectAP( &( xJoinAPParams ) ),
+                       eWiFiSuccess, ulInitialRetryPeriodMs, xMaxRetries );
 
-    if( xWifiStatus == eWiFiSuccess )
+    if( eWiFiStatus == eWiFiSuccess )
     {
         configPRINTF( ( "WiFi Connected to AP. Creating tasks which use network...\r\n" ) );
     }
     else
     {
-        configPRINTF( ( "WiFi failed to connect to AP.\r\n" ) );
+        configPRINTF( ( "WiFi failed to connect to AP %s.\r\n", clientcredentialWIFI_SSID ) );
 
         while( 1 )
         {

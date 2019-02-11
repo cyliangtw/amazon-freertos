@@ -1,0 +1,14 @@
+.\obj\aes.o: ..\..\..\..\lib\third_party\mbedtls\library\aes.c
+.\obj\aes.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\aes.o: ..\common\application_code\nuvoton_code\mbedtls_user_config.h
+.\obj\aes.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\aes.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\aes.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\obj\aes.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/aes.h
+.\obj\aes.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\aes.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\aes.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/platform_util.h
+.\obj\aes.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/platform.h
+.\obj\aes.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\aes.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\obj\aes.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h

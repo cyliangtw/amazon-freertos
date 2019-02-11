@@ -90,6 +90,7 @@
 #define configIDLE_SHOULD_YIELD			0
 #define configQUEUE_REGISTRY_SIZE		CONFIG_FREERTOS_QUEUE_REGISTRY_SIZE
 #define configMAX_TASK_NAME_LEN			( CONFIG_FREERTOS_MAX_TASK_NAME_LEN )
+#define configUSE_POSIX_ERRNO			1
 
 #if CONFIG_FREERTOS_CHECK_STACKOVERFLOW_NONE
     #define configCHECK_FOR_STACK_OVERFLOW	0
@@ -148,7 +149,7 @@
 
 /* Sets the length of the buffers into which logging messages are written - so
  * also defines the maximum length of each log message. */
-#define configLOGGING_MAX_MESSAGE_LENGTH            128
+#define configLOGGING_MAX_MESSAGE_LENGTH            192
 
 /* Set to 1 to prepend each log message with a message number, the task name,
  * and a time stamp. */

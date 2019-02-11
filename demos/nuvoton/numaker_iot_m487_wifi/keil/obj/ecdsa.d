@@ -1,0 +1,14 @@
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\library\ecdsa.c
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\ecdsa.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/ecdsa.h
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/ecp.h
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/bignum.h
+.\obj\ecdsa.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\ecdsa.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/md.h
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/asn1write.h
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/asn1.h
+.\obj\ecdsa.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\obj\ecdsa.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/hmac_drbg.h

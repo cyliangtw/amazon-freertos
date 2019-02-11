@@ -1,0 +1,10 @@
+.\obj\rsa_internal.o: ..\..\..\..\lib\third_party\mbedtls\library\rsa_internal.c
+.\obj\rsa_internal.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\rsa_internal.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\rsa_internal.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\rsa_internal.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/rsa.h
+.\obj\rsa_internal.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/bignum.h
+.\obj\rsa_internal.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\rsa_internal.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\rsa_internal.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/md.h
+.\obj\rsa_internal.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/rsa_internal.h

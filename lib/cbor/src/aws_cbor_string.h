@@ -38,10 +38,10 @@
  * Writes a string into the CBOR buffer at the location of the cursor.  Cursor
  * will then be pointing to the next byte after the string.
  *
- * @param "cbor_handle_t" handle for the CBOR data struct
+ * @param "CBORHandle_t" handle for the CBOR data struct
  * @param "const void *" pointer to a zero terminated string
  */
-void CBOR_WriteString(cbor_handle_t /*cbor_data*/, const void * /*input*/);
+void CBOR_WriteString( CBORHandle_t /*xCborData*/, const void * /*input*/ );
 
 /**
  * @brief Reads a string from the CBOR buffer
@@ -53,14 +53,14 @@ void CBOR_WriteString(cbor_handle_t /*cbor_data*/, const void * /*input*/);
  * @param  Handle for the CBOR data struct
  * @return pointer to a string
  */
-char *CBOR_ReadString(cbor_handle_t /*cbor_data*/);
+char * CBOR_ReadString( CBORHandle_t /*xCborData*/ );
 
 /**
  * @brief Gets the size (in bytes) of a string data item
  * @param  "const cbor_byte_t *" pointer to head of string data item
  * @return cbor_ssize_t size in bytes
  */
-cbor_ssize_t CBOR_StringSize(const cbor_byte_t * /*ptr*/);
+cbor_ssize_t CBOR_StringSize( const cbor_byte_t * /*ptr*/ );
 
 /**
  * @brief Gets the length of a string
@@ -71,7 +71,7 @@ cbor_ssize_t CBOR_StringSize(const cbor_byte_t * /*ptr*/);
  * @param  Handle for the CBOR data struct
  * @return Length of the string
  */
-cbor_ssize_t CBOR_StringLength(cbor_handle_t /*cbor_data*/);
+cbor_ssize_t CBOR_StringLength( CBORHandle_t /*xCborData*/ );
 
 /**
  * @brief Compares a string to a string in the CBOR buffer
@@ -87,6 +87,6 @@ cbor_ssize_t CBOR_StringLength(cbor_handle_t /*cbor_data*/);
  *
  */
 cbor_int_t CBOR_StringCompare(
-    cbor_handle_t /*cbor_data*/, cbor_const_string_t /*str2*/);
+    CBORHandle_t /*xCborData*/, cbor_const_string_t /*str2*/ );
 
 #endif /* end of include guard: AWS_CBOR_STRING_H */

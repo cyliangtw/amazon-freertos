@@ -1,0 +1,12 @@
+.\obj\hmac_drbg.o: ..\..\..\..\lib\third_party\mbedtls\library\hmac_drbg.c
+.\obj\hmac_drbg.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\hmac_drbg.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\hmac_drbg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\hmac_drbg.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/hmac_drbg.h
+.\obj\hmac_drbg.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/md.h
+.\obj\hmac_drbg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\hmac_drbg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\obj\hmac_drbg.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/platform.h
+.\obj\hmac_drbg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\hmac_drbg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\obj\hmac_drbg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h

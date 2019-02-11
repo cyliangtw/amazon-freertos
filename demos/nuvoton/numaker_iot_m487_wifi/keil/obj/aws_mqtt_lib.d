@@ -1,0 +1,9 @@
+.\obj\aws_mqtt_lib.o: ..\..\..\..\lib\mqtt\aws_mqtt_lib.c
+.\obj\aws_mqtt_lib.o: ..\..\..\..\lib\include\aws_mqtt_lib.h
+.\obj\aws_mqtt_lib.o: ..\common\config_files\aws_mqtt_config.h
+.\obj\aws_mqtt_lib.o: ..\..\..\..\lib\include\private\aws_mqtt_config_defaults.h
+.\obj\aws_mqtt_lib.o: ..\..\..\..\lib\include\private\aws_mqtt_buffer.h
+.\obj\aws_mqtt_lib.o: ..\..\..\..\lib\include\private\aws_doubly_linked_list.h
+.\obj\aws_mqtt_lib.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\aws_mqtt_lib.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\aws_mqtt_lib.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

@@ -1,0 +1,9 @@
+.\obj\timing.o: ..\..\..\..\lib\third_party\mbedtls\library\timing.c
+.\obj\timing.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\timing.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\timing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\timing.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/platform.h
+.\obj\timing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\timing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\obj\timing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h
+.\obj\timing.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h

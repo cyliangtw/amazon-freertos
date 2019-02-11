@@ -1,0 +1,13 @@
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\library\pk.c
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\pk.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/pk.h
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/md.h
+.\obj\pk.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/rsa.h
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/bignum.h
+.\obj\pk.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/ecp.h
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/ecdsa.h
+.\obj\pk.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/pk_internal.h

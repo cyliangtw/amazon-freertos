@@ -1847,9 +1847,6 @@ BaseType_t MQTT_AGENT_Init( void )
 
         for( x = 0; x < ( UBaseType_t ) mqttconfigMAX_BROKERS; x++ )
         {
-            /* Initialize the MQTT Core Library context. */
-            MQTTInitParams_t xInitParams;
-          
             xMQTTConnections[ x ].xSocket = SOCKETS_INVALID_SOCKET;
 
             /* Initialize user callback and data. These are provided during connect. */
@@ -1859,6 +1856,8 @@ BaseType_t MQTT_AGENT_Init( void )
             /* Mark the connection "not in use". */
             xMQTTConnections[ x ].xConnectionInUse = pdFALSE;
 
+            /* Initialize the MQTT Core Library context. */
+            MQTTInitParams_t xInitParams;
             xInitParams.pvCallbackContext = ( void * ) x; /*lint !e923 The cast is ok as we are passing the index of the client. */
             xInitParams.pxCallback = prvMQTTEventCallback;
             xInitParams.pvSendContext = ( void * ) x;     /*lint !e923 The cast is ok as we are passing the index of the client. */

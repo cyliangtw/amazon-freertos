@@ -79,18 +79,6 @@
     <Filter Include="lib\aws\FreeRTOS">
       <UniqueIdentifier>{599df67d-d23c-4b57-b11b-5aa0295d47ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="lib\aws\FreeRTOS-Plus-TCP">
-      <UniqueIdentifier>{f2227145-98f3-4736-9beb-88814b3f4260}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib\aws\FreeRTOS-Plus-TCP\source">
-      <UniqueIdentifier>{d7487b11-d8a2-4469-90a4-178627e1c764}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib\aws\FreeRTOS-Plus-TCP\include">
-      <UniqueIdentifier>{3c1d3b24-4ff7-477e-ab07-0945ac69ee5c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="lib\aws\FreeRTOS-Plus-TCP\source\portable">
-      <UniqueIdentifier>{ea457092-90b7-4701-b51d-40133aac3f8f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="lib\aws\secure_sockets">
       <UniqueIdentifier>{00b88df5-3531-42f8-abdc-979d708baa30}</UniqueIdentifier>
     </Filter>
@@ -147,6 +135,15 @@
     </Filter>
     <Filter Include="application_code\common_tests\memory_leak">
       <UniqueIdentifier>{0286fdcc-912a-4ee7-8e74-b06e669030b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\aws\ota">
+      <UniqueIdentifier>{30a17663-02b5-48c6-9642-7b190250efe0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\third_party\tinycbor">
+      <UniqueIdentifier>{a505b804-d141-49ff-99ce-c8cfae64a367}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="application_code\common_tests\ota">
+      <UniqueIdentifier>{13e2c71d-7de3-4979-be17-9269b2273ff0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -381,51 +378,6 @@
     <ClInclude Include="..\..\..\..\lib\third_party\cmock\src\cmock.h">
       <Filter>lib\third_party\cmock</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_UDP_IP.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOSIPConfigDefaults.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\IPTraceMacroDefaults.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\NetworkBufferManagement.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\NetworkInterface.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_ARP.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_DHCP.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_DNS.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_errno_TCP.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_IP.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_IP_Private.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_Sockets.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_Stream_Buffer.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_TCP_IP.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\include\FreeRTOS_TCP_WIN.h">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\include</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\config_files\aws_bufferpool_config.h">
       <Filter>config_files</Filter>
     </ClInclude>
@@ -555,9 +507,6 @@
     <ClInclude Include="..\..\..\..\lib\include\private\aws_ota_cbor.h">
       <Filter>lib\aws\include\private</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\lib\include\private\aws_rsprintf.h">
-      <Filter>lib\aws\include\private</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\lib\include\private\aws_secure_sockets_config_defaults.h">
       <Filter>lib\aws\include\private</Filter>
     </ClInclude>
@@ -597,9 +546,6 @@
     <ClInclude Include="..\..\..\common\include\aws_clientcredential_keys.h">
       <Filter>application_code\common_tests\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\common\secure_sockets\portable\vendor\board\aws_test_tcp_portable.h">
-      <Filter>application_code\common_tests\secure_sockets</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\config_files\aws_wifi_config.h">
       <Filter>config_files</Filter>
     </ClInclude>
@@ -614,6 +560,15 @@
     </ClInclude>
     <ClInclude Include="..\common\config_files\aws_test_wifi_config.h">
       <Filter>config_files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\config_files\aws_ota_agent_config.h">
+      <Filter>config_files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\config_files\aws_test_ota_config.h">
+      <Filter>config_files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\lib\third_party\mbedtls\include\mbedtls\platform_util.h">
+      <Filter>lib\third_party\mbedtls\include\mbedtls</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -851,36 +806,6 @@
     <ClCompile Include="..\..\..\..\lib\mqtt\aws_mqtt_lib.c">
       <Filter>lib\aws\mqtt</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\FreeRTOS_Sockets.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\FreeRTOS_Stream_Buffer.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\FreeRTOS_TCP_IP.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\FreeRTOS_TCP_WIN.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\FreeRTOS_UDP_IP.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\FreeRTOS_ARP.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\FreeRTOS_DHCP.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\FreeRTOS_DNS.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\FreeRTOS_IP.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\portable\BufferManagement\BufferAllocation_2.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source\portable</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\bufferpool\aws_bufferpool_static_thread_safe.c">
       <Filter>lib\aws\bufferpool</Filter>
     </ClCompile>
@@ -956,9 +881,6 @@
     <ClCompile Include="..\..\..\common\mqtt\aws_test_mqtt_agent.c">
       <Filter>application_code\common_tests\mqtt</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\lib\FreeRTOS-Plus-TCP\source\portable\NetworkInterface\board_family\NetworkInterface.c">
-      <Filter>lib\aws\FreeRTOS-Plus-TCP\source\portable</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\lib\FreeRTOS\portable\Compiler\Arch\port.c">
       <Filter>lib\aws\FreeRTOS\portable\Compiler\Arch</Filter>
     </ClCompile>
@@ -989,10 +911,44 @@
     <ClCompile Include="..\..\..\..\lib\pkcs11\portable\vendor\board\aws_pkcs11_pal.c">
       <Filter>lib\aws\pkcs11</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\..\lib\third_party\mbedtls\library\Makefile">
+    <ClCompile Include="..\..\..\..\lib\ota\aws_ota_agent.c">
+      <Filter>lib\aws\ota</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\ota\aws_ota_cbor.c">
+      <Filter>lib\aws\ota</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\ota\portable\vendor\board\aws_ota_pal.c">
+      <Filter>lib\aws\ota</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\third_party\tinycbor\cborencoder.c">
+      <Filter>lib\third_party\tinycbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\third_party\tinycbor\cborencoder_close_container_checked.c">
+      <Filter>lib\third_party\tinycbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\third_party\tinycbor\cborerrorstrings.c">
+      <Filter>lib\third_party\tinycbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\third_party\tinycbor\cborparser.c">
+      <Filter>lib\third_party\tinycbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\third_party\tinycbor\cborparser_dup_string.c">
+      <Filter>lib\third_party\tinycbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\third_party\tinycbor\cborpretty.c">
+      <Filter>lib\third_party\tinycbor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\common\ota\aws_test_ota_agent.c">
+      <Filter>application_code\common_tests\ota</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\common\ota\aws_test_ota_pal.c">
+      <Filter>application_code\common_tests\ota</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\common\ota\aws_test_ota_cbor.c">
+      <Filter>application_code\common_tests\ota</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\lib\third_party\mbedtls\library\platform_util.c">
       <Filter>lib\third_party\mbedtls\library</Filter>
-    </None>
+    </ClCompile>
   </ItemGroup>
 </Project>

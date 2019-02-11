@@ -1,0 +1,4 @@
+.\obj\havege.o: ..\..\..\..\lib\third_party\mbedtls\library\havege.c
+.\obj\havege.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\havege.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\havege.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h

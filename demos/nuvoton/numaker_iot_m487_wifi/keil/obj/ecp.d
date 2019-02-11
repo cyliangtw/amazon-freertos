@@ -1,0 +1,15 @@
+.\obj\ecp.o: ..\..\..\..\lib\third_party\mbedtls\library\ecp.c
+.\obj\ecp.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/config.h
+.\obj\ecp.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/check_config.h
+.\obj\ecp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\obj\ecp.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/ecp.h
+.\obj\ecp.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/bignum.h
+.\obj\ecp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\obj\ecp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\ecp.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/threading.h
+.\obj\ecp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\obj\ecp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\obj\ecp.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/platform.h
+.\obj\ecp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\ecp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h
+.\obj\ecp.o: ..\..\..\..\lib\third_party\mbedtls\include\mbedtls/ecp_internal.h

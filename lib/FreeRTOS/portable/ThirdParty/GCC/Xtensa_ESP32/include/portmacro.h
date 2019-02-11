@@ -74,12 +74,12 @@ extern "C" {
 
 #include <stdint.h>
 
-#include <xtensa/tie/xt_core.h>
 #include <xtensa/hal.h>
 #include <xtensa/config/core.h>
 #include <xtensa/config/system.h>	/* required for XSHAL_CLIB */
 #include <xtensa/xtruntime.h>
 #include "esp_timer.h"              /* required for FreeRTOS run time stats */
+#include "esp_system.h"
 
 
 #include <esp_heap_caps.h>
@@ -282,6 +282,7 @@ static inline void uxPortCompareSet(volatile uint32_t *addr, uint32_t compare, u
         );
 }
 
+void uxPortCompareSetExtram(volatile uint32_t *addr, uint32_t compare, uint32_t *set);
 
 /*-----------------------------------------------------------*/
 
@@ -361,8 +362,8 @@ void _xt_coproc_release(volatile void * coproc_sa_base);
  * non-FreeRTOS-specific code, and behave the same as
  * pvPortMalloc()/vPortFree().
  */
-#define pvPortMalloc malloc
-#define vPortFree free
+#define pvPortMalloc heap_caps_malloc_default
+#define vPortFree heap_caps_free
 #define xPortGetFreeHeapSize esp_get_free_heap_size
 #define xPortGetMinimumEverFreeHeapSize esp_get_minimum_free_heap_size
 
