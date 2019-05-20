@@ -1,0 +1,104 @@
+Checking whether the ASM compiler is GNU using "--version" did not match "(GNU assembler)|(GCC)|(Free Software Foundation)":
+Fatal error: A3900U: Unrecognized option '--version'.
+1 Error, 0 Warnings
+Checking whether the ASM compiler is Clang using "--version" did not match "(clang version)":
+Fatal error: A3900U: Unrecognized option '--version'.
+1 Error, 0 Warnings
+Checking whether the ASM compiler is AppleClang using "--version" did not match "(Apple LLVM version)":
+Fatal error: A3900U: Unrecognized option '--version'.
+1 Error, 0 Warnings
+Checking whether the ASM compiler is HP using "-V" did not match "HP C":
+Fatal error: A3900U: Unrecognized option '-V'.
+1 Error, 0 Warnings
+Checking whether the ASM compiler is Intel using "--version" did not match "(ICC)":
+Fatal error: A3900U: Unrecognized option '--version'.
+1 Error, 0 Warnings
+Checking whether the ASM compiler is SunPro using "-V" did not match "Sun C":
+Fatal error: A3900U: Unrecognized option '-V'.
+1 Error, 0 Warnings
+Checking whether the ASM compiler is XL using "-qversion" did not match "XL C":
+Fatal error: A3900U: Unrecognized option '-qversion'.
+1 Error, 0 Warnings
+Checking whether the ASM compiler is MSVC using "-?" did not match "Microsoft":
+Fatal error: A3900U: Unrecognized option '-?'.
+1 Error, 0 Warnings
+Checking whether the ASM compiler is TI using "-h" did not match "Texas Instruments":
+Product: MDK Professional 5.27
+Component: ARM Compiler 5.06 update 6 (build 750)
+Tool: armasm [4d35ec]
+For support see http://www.arm.com/support
+Software supplied by: ARM Limited
+
+Usage:      armasm [options] sourcefile
+
+Options:
+--list       listingfile   Write a listing file (see manual for options)
+ -o          outputfile    Name the final output file
+--depend     dependfile    Save 'make' source file dependencies
+--errors     errorsfile    Put stderr diagnostics to errorsfile
+ -I          dir[,dir]     Add dirs to source file search path
+--pd
+--predefine  directive     Pre-execute a SET{L,A,S} directive
+--maxcache   <n>           Maximum cache size    (default 8MB)
+--no_esc                   Ignore C-style (\c) escape sequences
+--no_warn                  Turn off Warning messages
+ -g                        Output debugging tables
+--apcs       /<quals>      Make pre-definitions to match the
+                           chosen procedure-call standard
+--checkreglist             Warn about out of order LDM/STM register lists
+--help                     Print this information
+--li                       Little-endian ARM
+--bi                       Big-endian ARM
+ -M                        Write source file dependency lists to stdout
+--MD                       Write source file dependency lists to inputfile.d
+--keep                     Keep local labels in symbol table of object file
+--regnames none            Do not predefine register names
+--split_ldm                Fault long LDM/STM
+--unsafe                   Downgrade certain errors to warnings
+--via        <file>        Read further arguments from <file>
+--cpu        <target-cpu>  Set the target ARM core type
+--cpu list                 Output a list of all the selectable CPUs
+--fpu        <target-arch> Set target FP architecture version
+--fpu list                 Output a list of all selectable FP architectures
+--thumb                    Assemble Thumb instructions
+--arm                      Assemble ARM instructions
+Checking whether the ASM compiler is IAR using "" did not match "IAR Assembler":
+Product: MDK Professional 5.27
+Component: ARM Compiler 5.06 update 6 (build 750)
+Tool: armasm [4d35ec]
+For support see http://www.arm.com/support
+Software supplied by: ARM Limited
+
+Usage:      armasm [options] sourcefile
+
+Options:
+--list       listingfile   Write a listing file (see manual for options)
+ -o          outputfile    Name the final output file
+--depend     dependfile    Save 'make' source file dependencies
+--errors     errorsfile    Put stderr diagnostics to errorsfile
+ -I          dir[,dir]     Add dirs to source file search path
+--pd
+--predefine  directive     Pre-execute a SET{L,A,S} directive
+--maxcache   <n>           Maximum cache size    (default 8MB)
+--no_esc                   Ignore C-style (\c) escape sequences
+--no_warn                  Turn off Warning messages
+ -g                        Output debugging tables
+--apcs       /<quals>      Make pre-definitions to match the
+                           chosen procedure-call standard
+--checkreglist             Warn about out of order LDM/STM register lists
+--help                     Print this information
+--li                       Little-endian ARM
+--bi                       Big-endian ARM
+ -M                        Write source file dependency lists to stdout
+--MD                       Write source file dependency lists to inputfile.d
+--keep                     Keep local labels in symbol table of object file
+--regnames none            Do not predefine register names
+--split_ldm                Fault long LDM/STM
+--unsafe                   Downgrade certain errors to warnings
+--via        <file>        Read further arguments from <file>
+--cpu        <target-cpu>  Set the target ARM core type
+--cpu list                 Output a list of all the selectable CPUs
+--fpu        <target-arch> Set target FP architecture version
+--fpu list                 Output a list of all selectable FP architectures
+--thumb                    Assemble Thumb instructions
+--arm                      Assemble ARM instructions

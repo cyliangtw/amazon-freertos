@@ -1,0 +1,72 @@
+The target system is: Generic -  - 
+The host system is: Windows - 10.0.17134 - AMD64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: C:/Keil_v5/ARM/ARMCC/bin/armcc.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.o"
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "__image.axf"
+
+The C compiler identification is ARMCC, found in "C:/Andy/nuvoton/afr/amazon-freertos-share_up_to_date/cmake/amazon-freertos/build/nuvoton_demo/CMakeFiles/3.14.4/CompilerIdC/CMakeCCompilerId.o"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: C:/Keil_v5/ARM/ARMCC/bin/armcc.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.o"
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "__image.axf"
+
+The CXX compiler identification is ARMCC, found in "C:/Andy/nuvoton/afr/amazon-freertos-share_up_to_date/cmake/amazon-freertos/build/nuvoton_demo/CMakeFiles/3.14.4/CompilerIdCXX/CMakeCXXCompilerId.o"
+
+Checking whether the ASM compiler is ARMCC using "" matched "(ARM Compiler)|(ARM Assembler)":
+Product: MDK Professional 5.27
+Component: ARM Compiler 5.06 update 6 (build 750)
+Tool: armasm [4d35ec]
+For support see http://www.arm.com/support
+Software supplied by: ARM Limited
+
+Usage:      armasm [options] sourcefile
+
+Options:
+--list       listingfile   Write a listing file (see manual for options)
+ -o          outputfile    Name the final output file
+--depend     dependfile    Save 'make' source file dependencies
+--errors     errorsfile    Put stderr diagnostics to errorsfile
+ -I          dir[,dir]     Add dirs to source file search path
+--pd
+--predefine  directive     Pre-execute a SET{L,A,S} directive
+--maxcache   <n>           Maximum cache size    (default 8MB)
+--no_esc                   Ignore C-style (\c) escape sequences
+--no_warn                  Turn off Warning messages
+ -g                        Output debugging tables
+--apcs       /<quals>      Make pre-definitions to match the
+                           chosen procedure-call standard
+--checkreglist             Warn about out of order LDM/STM register lists
+--help                     Print this information
+--li                       Little-endian ARM
+--bi                       Big-endian ARM
+ -M                        Write source file dependency lists to stdout
+--MD                       Write source file dependency lists to inputfile.d
+--keep                     Keep local labels in symbol table of object file
+--regnames none            Do not predefine register names
+--split_ldm                Fault long LDM/STM
+--unsafe                   Downgrade certain errors to warnings
+--via        <file>        Read further arguments from <file>
+--cpu        <target-cpu>  Set the target ARM core type
+--cpu list                 Output a list of all the selectable CPUs
+--fpu        <target-arch> Set target FP architecture version
+--fpu list                 Output a list of all selectable FP architectures
+--thumb                    Assemble Thumb instructions
+--arm                      Assemble ARM instructions
