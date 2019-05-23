@@ -104,6 +104,7 @@ target_sources(
         "${AFR_VENDORS_DIR}/nuvoton/sdk/StdDriver/src/retarget.c"
         "${AFR_KERNEL_DIR}/portable/MemMang/heap_4.c"
 		"${AFR_KERNEL_DIR}/portable/RVDS/ARM_CM4F/port.c"
+		"${board_dir}/application_code/nuvoton_code/entropy_hardware_poll.c"
  
         # Tracelyzer recorder files
         $<IF:${AFR_IS_TESTING}, "${AFR_3RDPARTY_DIR}/tracealyzer_recorder/trcKernelPort.c" , >
@@ -242,7 +243,7 @@ add_executable(
     $<IF:${AFR_IS_TESTING}, ,${network_manager_src}>
     "${AFR_VENDORS_DIR}/nuvoton/sdk/Device/Nuvoton/numaker_iot_m487_wifi/Source/ARM/startup_M480.s"
 	"${AFR_VENDORS_DIR}/nuvoton/sdk/Device/Nuvoton/numaker_iot_m487_wifi/Source/system_M480.c"
-    "${board_dir}/application_code/main.c"
+    "${board_dir}/application_code/main.c"	
 	
 )
 
