@@ -73,7 +73,7 @@ target_compile_options(
 )
 
 # Linker flags
-set(linker_flags --cpu Cortex-M4.fp --library_type=microlib --diag_suppress 550,177,C4017,111,2770,223 --strict --scatter "${CMAKE_CURRENT_LIST_DIR}/aws_demos/keil/obj/aws_demos.sct" --summary_stderr --info summarysizes,sizes,totals,unused,veneers --map --xref --callgraph --symbols )
+set(linker_flags --cpu Cortex-M4.fp --library_type=microlib --diag_suppress 550,177,C4017,111,2770,223 --strict --summary_stderr --info summarysizes,sizes,totals,unused,veneers --map --xref --callgraph --symbols )
 
 target_link_options(
     AFR::compiler::mcu_port
