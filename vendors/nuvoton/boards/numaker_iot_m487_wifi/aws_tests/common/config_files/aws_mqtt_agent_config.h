@@ -105,4 +105,10 @@
  */
 #define mqttconfigTCP_SEND_TIMEOUT_MS    ( 2000 )
 
+/**
+ * @brief Length of the buffer used to receive data.
+ */
+#define mqttconfigRX_BUFFER_SIZE         ( 128 )
+
+
 #endif /* _AWS_MQTT_AGENT_CONFIG_H_ */

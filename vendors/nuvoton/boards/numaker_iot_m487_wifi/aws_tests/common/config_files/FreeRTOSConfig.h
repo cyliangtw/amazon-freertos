@@ -141,6 +141,9 @@ void vLoggingPrintf( const char * pcFormat,
 /* Map the FreeRTOS printf() to the logging task printf. */
 #define configPRINTF( x )   vLoggingPrintf x   //printf x
 
+/* Non-format version thread-safe print */
+#define configPRINT( X )                  vLoggingPrint( X )
+
 /* Map the logging task's printf to the board specific retarget output function. */
 #define configPRINT_STRING    printf
 

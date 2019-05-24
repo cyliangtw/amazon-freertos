@@ -6,11 +6,11 @@ set(tests_uvision_dir ${CMAKE_CURRENT_LIST_DIR}/aws_tests/keil/)
 
 if(AFR_IS_TESTING)
     set(board_dir "${board_tests_dir}")
-    set(board_uvision_dir "${demos_uvision_dir}")
+    set(board_uvision_dir "${tests_uvision_dir}")
     set(exe_target aws_tests)
 else()
     set(board_dir "${board_demos_dir}")
-    set(board_uvision_dir "${tests_uvision_dir}")
+    set(board_uvision_dir "${demos_uvision_dir}")
     set(exe_target aws_demos)
 endif()
 
@@ -106,10 +106,6 @@ target_sources(
 		"${AFR_KERNEL_DIR}/portable/RVDS/ARM_CM4F/port.c"
 		"${board_dir}/application_code/nuvoton_code/entropy_hardware_poll.c"
  
-        # Tracelyzer recorder files
-        $<IF:${AFR_IS_TESTING}, "${AFR_3RDPARTY_DIR}/tracealyzer_recorder/trcKernelPort.c" , >
-        $<IF:${AFR_IS_TESTING}, "${AFR_3RDPARTY_DIR}/tracealyzer_recorder/trcSnapshotRecorder.c" , >
-        $<IF:${AFR_IS_TESTING}, "${AFR_3RDPARTY_DIR}/tracealyzer_recorder/trcStreamingRecorder.c" , >
         ${compiler_specific_src}
 )
 
