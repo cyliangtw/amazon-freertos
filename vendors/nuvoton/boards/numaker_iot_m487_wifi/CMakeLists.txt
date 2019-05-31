@@ -229,7 +229,6 @@ set(CMAKE_EXECUTABLE_SUFFIX ".axf")
 
 # TODO, remove network manager src.
 afr_glob_src(network_manager_src DIRECTORY "${AFR_DEMOS_DIR}/network_manager")
-#afr_glob_src(board_code_src DIRECTORY "${board_dir}/application_code/mediatek_code")
 afr_glob_src(config_files DIRECTORY "${board_dir}/config_files")
 
 add_executable(
@@ -253,8 +252,13 @@ target_link_libraries(
         AFR::pkcs11
 )
 
+# Convert afx file to bin file
+afr_find_compiler(ARM_KEIL_FROMELF fromelf.exe)
+
 add_custom_command(
     TARGET ${exe_target} POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:${exe_target}>" "${CMAKE_BINARY_DIR}"
+	COMMAND "${ARM_KEIL_FROMELF}" --bin "${exe_target}.axf" --output "${exe_target}.bin"
+	COMMAND "${ARM_KEIL_FROMELF}" --text -c "${exe_target}.axf" --output "${exe_target}.txt"
 )
 
