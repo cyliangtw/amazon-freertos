@@ -1,6 +1,6 @@
 set(afr_ports_dir "${CMAKE_CURRENT_LIST_DIR}/ports")
-set(board_demos_dir "${CMAKE_CURRENT_LIST_DIR}/aws_demos/common")
-set(board_tests_dir "${CMAKE_CURRENT_LIST_DIR}/aws_tests/common")
+set(board_demos_dir "${CMAKE_CURRENT_LIST_DIR}/aws_demos")
+set(board_tests_dir "${CMAKE_CURRENT_LIST_DIR}/aws_tests")
 set(demos_uvision_dir ${CMAKE_CURRENT_LIST_DIR}/aws_demos/keil/)
 set(tests_uvision_dir ${CMAKE_CURRENT_LIST_DIR}/aws_tests/keil/)
 
@@ -25,17 +25,16 @@ afr_set_board_metadata(DISPLAY_NAME "numaker_iot_m487_wifi Development Kit")
 afr_set_board_metadata(DESCRIPTION "numaker_iot_m487_wifi Development Kit")
 afr_set_board_metadata(VENDOR_NAME "Nuvoton")
 afr_set_board_metadata(FAMILY_NAME "numaker_iot_m487_wifi Series")
-afr_set_board_metadata(DATA_RAM_MEMORY "352KB")
-afr_set_board_metadata(PROGRAM_MEMORY "4MB")
+afr_set_board_metadata(DATA_RAM_MEMORY "160KB")
+afr_set_board_metadata(PROGRAM_MEMORY "512KB")
 afr_set_board_metadata(CODE_SIGNER "AmazonFreeRTOS-Default")
 afr_set_board_metadata(SUPPORTED_IDE "uVision")
 afr_set_board_metadata(RECOMMENDED_IDE "uVision")
 afr_set_board_metadata(IDE_uVision_NAME "Keil uVision")
 afr_set_board_metadata(IDE_uVision_COMPILER "ARMCC")
 afr_set_board_metadata(IS_ACTIVE "TRUE")
-
 afr_set_board_metadata(IDE_uVision_PROJECT_LOCATION "${CMAKE_CURRENT_LIST_DIR}/aws_demos/keil")
-afr_set_board_metadata(AWS_DEMOS_CONFIG_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}/aws_demos/common/config_files")
+afr_set_board_metadata(AWS_DEMOS_CONFIG_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}/aws_demos/config_files")
 
 # -------------------------------------------------------------------------------------------------
 # Compiler settings
@@ -52,6 +51,7 @@ target_compile_definitions(
     -DHAL_DFS_MODULE_ENABLED 
     -DLWIP_NO_STDINT_H=1 
     -DLWIP_TIMEVAL_PRIVATE=1
+    -D__little_endian__=1
 )
 target_compile_definitions(
     AFR::compiler::mcu_port
@@ -73,7 +73,7 @@ target_compile_options(
 )
 
 # Linker flags
-set(linker_flags --cpu Cortex-M4.fp --library_type=microlib --diag_suppress 550,177,C4017,111,2770,223 --strict --summary_stderr --info summarysizes,sizes,totals,unused,veneers --map --xref --callgraph --symbols )
+set(linker_flags --cpu Cortex-M4.fp --diag_suppress 6340,6329,6314 --entry Reset_Handler --strict --scatter "${CMAKE_CURRENT_LIST_DIR}/m487_flash.sct" --summary_stderr --info summarysizes,sizes,totals,unused,veneers --map --xref --callgraph --symbols )
 
 target_link_options(
     AFR::compiler::mcu_port
@@ -95,7 +95,6 @@ target_sources(
     INTERFACE
         # Nuvoton SDK sources (driver)		
         "${AFR_VENDORS_DIR}/nuvoton/sdk/middleware/wifi_esp8266/esp8266_wifi.c"
-
         "${AFR_VENDORS_DIR}/nuvoton/sdk/StdDriver/src/clk.c"
         "${AFR_VENDORS_DIR}/nuvoton/sdk/StdDriver/src/crypto.c"
         "${AFR_VENDORS_DIR}/nuvoton/sdk/StdDriver/src/fmc.c"
@@ -105,7 +104,6 @@ target_sources(
         "${AFR_KERNEL_DIR}/portable/MemMang/heap_4.c"
         "${AFR_KERNEL_DIR}/portable/RVDS/ARM_CM4F/port.c"
         "${board_dir}/application_code/nuvoton_code/entropy_hardware_poll.c"
- 
         ${compiler_specific_src}
 )
 
@@ -121,24 +119,25 @@ target_include_directories(
         "${board_dir}/application_code/nuvoton_code"
         "${board_dir}/application_code/nuvoton_code/include"
         # Need aws_clientcredential.h
-        "$<IF:${AFR_IS_TESTING},${AFR_TEST_DIR},${AFR_DEMOS_DIR}>/include"
-		
-		
-        "${AFR_MODULES_STANDARD_DIR}/mqtt/include"
-        "${AFR_MODULES_STANDARD_DIR}/common/include"
-        
+        "$<IF:${AFR_IS_TESTING},${AFR_TESTS_DIR},${AFR_DEMOS_DIR}>/include"
+        "${AFR_MODULES_C_SDK_DIR}/standard/mqtt/include"
+        "${AFR_MODULES_C_SDK_DIR}/standard/common/include"
+        "${AFR_MODULES_C_SDK_DIR}/mqtt/include"
+        "${AFR_MODULES_C_SDK_DIR}/common/include"
         "${AFR_3RDPARTY_DIR}/lwip/src/include"
         "${AFR_3RDPARTY_DIR}/lwip/test/fuzz"
         "${AFR_3RDPARTY_DIR}/lwip/src/portable"
-        "${AFR_3RDPARTY_DIR}/lwip/src/portable/arch"
-		
+        "${AFR_3RDPARTY_DIR}/lwip/src/portable/arch"		
         "${AFR_3RDPARTY_DIR}/pkcs11"
-        "${AFR_ROOT_DIR}/modules/ports/secure_sockets/include"
-        "${AFR_MODULES_STANDARD_DIR}/common/include/private"
-        "${AFR_MODULES_STANDARD_DIR}/utils/include"
-        "${AFR_MODULES_STANDARD_DIR}/provisioning/include"
-        "${AFR_MODULES_PORTS_DIR}/pkcs11/include"
-        "${AFR_MODULES_PORTS_DIR}/wifi/include"
+        "${AFR_MODULES_ABSTRACTIONS_DIR}/secure_sockets/include"
+		"${AFR_MODULES_C_SDK_DIR}/standard/common/include"
+        "${AFR_MODULES_C_SDK_DIR}/standard/common/include/private"
+		"${AFR_MODULES_C_SDK_DIR}/standard/common/include/types"
+		"${AFR_MODULES_C_SDK_DIR}/standard/serializer/include"
+        "${AFR_MODULES_FREERTOS_PLUS_DIR}/standard/utils/include"
+        "${AFR_MODULES_FREERTOS_PLUS_DIR}/standard/provisioning/include"
+        "${AFR_MODULES_ABSTRACTIONS_DIR}/pkcs11/include"
+        "${AFR_MODULES_ABSTRACTIONS_DIR}/wifi/include"
         "${board_dir}/config_files"
         "${AFR_3RDPARTY_DIR}/tracealyzer_recorder/Include"
         ${compiler_specific_include}
@@ -179,8 +178,8 @@ target_sources(
     AFR::pkcs11::mcu_port
     INTERFACE
         "${afr_ports_dir}/pkcs11/aws_pkcs11_pal.c"
-        "${AFR_MODULES_PORTS_DIR}/pkcs11/mbedtls/aws_pkcs11_mbedtls.c"
-        "${AFR_MODULES_STANDARD_DIR}/crypto/src/aws_crypto.c"
+        "${AFR_MODULES_ABSTRACTIONS_DIR}/pkcs11/mbedtls/aws_pkcs11_mbedtls.c"
+        "${AFR_MODULES_FREERTOS_PLUS_DIR}/standard/crypto/src/aws_crypto.c"
 )
 target_link_libraries(
     AFR::pkcs11::mcu_port
@@ -190,7 +189,7 @@ target_link_libraries(
 target_include_directories(
     AFR::pkcs11::mcu_port
     INTERFACE
-        "${AFR_MODULES_STANDARD_DIR}/crypto/include/"
+        "${AFR_MODULES_FREERTOS_PLUS_DIR}/standard/crypto/include/"
         #"${board_dir}/application_code/mediatek_code/include"
 )
 
@@ -200,19 +199,19 @@ target_sources(
     AFR::secure_sockets::mcu_port
     INTERFACE 
         "${afr_ports_dir}/secure_sockets/aws_secure_sockets.c"
-        "${AFR_ROOT_DIR}/modules/libraries/standard/tls/src/aws_tls.c"
+        "${AFR_MODULES_FREERTOS_PLUS_DIR}/standard/tls/src/aws_tls.c"
 )
 target_include_directories(
     AFR::secure_sockets::mcu_port
     INTERFACE
        "${AFR_3RDPARTY_DIR}/lwip/src/include/lwip"
        "${AFR_3RDPARTY_DIR}/lwip/src/portable"
-       "${AFR_ROOT_DIR}/modules/ports/wifi/include"
-       "${AFR_MODULES_STANDARD_DIR}/common/include"
-       "${AFR_MODULES_STANDARD_DIR}/tls/include"
+       "${AFR_MODULES_ABSTRACTIONS_DIR}/wifi/include"
+       "${AFR_MODULES_C_SDK_DIR}/standard/common/include"
+       "${AFR_MODULES_FREERTOS_PLUS_DIR}/standard/tls/include"
        "${AFR_3RDPARTY_DIR}/mbedtls/include"
-       "${AFR_MODULES_STANDARD_DIR}/crypto/include"
-       "${AFR_MODULES_PORTS_DIR}/pkcs11/mbedtls"
+       "${AFR_MODULES_FREERTOS_PLUS_DIR}/standard/crypto/include"
+       "${AFR_MODULES_ABSTRACTIONS_DIR}/pkcs11/mbedtls"
 )
 
 afr_module_dependencies(
@@ -235,10 +234,10 @@ add_executable(
     ${exe_target}
     ${board_code_src}
     ${config_files}
+    "${board_dir}/application_code/main.c"
+	"${AFR_VENDORS_DIR}/nuvoton/sdk/Device/Nuvoton/numaker_iot_m487_wifi/Source/ARM/startup_M480.s"
+    "${AFR_VENDORS_DIR}/nuvoton/sdk/Device/Nuvoton/numaker_iot_m487_wifi/Source/system_M480.c"
     $<IF:${AFR_IS_TESTING}, ,${network_manager_src}>
-    "${AFR_VENDORS_DIR}/nuvoton/sdk/Device/Nuvoton/numaker_iot_m487_wifi/Source/ARM/startup_M480.s"
-	"${AFR_VENDORS_DIR}/nuvoton/sdk/Device/Nuvoton/numaker_iot_m487_wifi/Source/system_M480.c"
-    "${board_dir}/application_code/main.c"	
 	
 )
 
@@ -250,6 +249,13 @@ target_link_libraries(
         ${link_extra_flags}
         AFR::crypto
         AFR::pkcs11
+)
+
+# Disable device defender
+afr_module_dependencies(
+    defender
+    PRIVATE
+        3rdparty::dummy
 )
 
 # Convert afx file to bin file
