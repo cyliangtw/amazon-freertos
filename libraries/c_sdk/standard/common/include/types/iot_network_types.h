@@ -1,7 +1,6 @@
-
 /*
- * Amazon FreeRTOS
- * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Amazon FreeRTOS Common V1.0.0
+ * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,7 +23,6 @@
  * http://www.FreeRTOS.org
  */
 
-
 /**
  * @file iot_network_types.h
  * @brief Header file contains the network types shared by both low level networking drivers
@@ -33,6 +31,7 @@
 
 #ifndef IOT_NETWORK_TYPES_H_
 #define IOT_NETWORK_TYPES_H_
+
 /**
  * @brief Network types supported by Amazon FreeRTOS.
  */
@@ -40,8 +39,8 @@
 #define AWSIOT_NETWORK_TYPE_WIFI     0x00000001
 #define AWSIOT_NETWORK_TYPE_BLE      0x00000002
 #define AWSIOT_NETWORK_TYPE_ETH      0x00000004
-#define AWSIOT_NETWORK_TYPE_ALL      (AWSIOT_NETWORK_TYPE_ETH | AWSIOT_NETWORK_TYPE_BLE | AWSIOT_NETWORK_TYPE_WIFI)
-
+#define AWSIOT_NETWORK_TYPE_ALL      ( AWSIOT_NETWORK_TYPE_WIFI  | AWSIOT_NETWORK_TYPE_BLE | AWSIOT_NETWORK_TYPE_ETH )
+#define AWSIOT_NETWORK_TYPE_TCP_IP   ( AWSIOT_NETWORK_TYPE_WIFI  | AWSIOT_NETWORK_TYPE_ETH )
 /**
  * @brief Enum types representing states for different networks.
  */

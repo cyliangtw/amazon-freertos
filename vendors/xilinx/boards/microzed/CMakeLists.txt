@@ -25,7 +25,7 @@ afr_set_board_metadata(VENDOR_NAME "Xilinx")
 afr_set_board_metadata(FAMILY_NAME "Zynq-7000")
 afr_set_board_metadata(DATA_RAM_MEMORY "1GB")
 afr_set_board_metadata(PROGRAM_MEMORY "128MB")
-afr_set_board_metadata(CODE_SIGNER "AmazonFreeRTOS-Default")
+afr_set_board_metadata(CODE_SIGNER "null")
 afr_set_board_metadata(SUPPORTED_IDE "XSDK")
 afr_set_board_metadata(RECOMMENDED_IDE "XSDK")
 afr_set_board_metadata(IDE_XSDK_NAME "Xilinx SDK")
@@ -133,7 +133,6 @@ target_link_libraries(
     AFR::pkcs11::mcu_port
     INTERFACE
         AFR::pkcs11_mbedtls
-        AFR::tls
 )
 
 
@@ -187,7 +186,6 @@ target_link_libraries(
 )
 
 # The kernel is the root dependency, linking the library flags like this ensures it adds the flags last in the command line
-
 set(link_extra_flags -Wl,--start-group,-lxilffs,-lxil,-lgcc,-lc,-lrsa,--end-group)
 
 target_link_libraries(
@@ -213,6 +211,6 @@ add_custom_command(
 )
 endif()
 
-
-
-
+if(NOT AFR_METADATA_MODE)
+    message(FATAL_ERROR "CMake support for nxp is not complete yet.")
+endif()

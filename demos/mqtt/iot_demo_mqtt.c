@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Amazon FreeRTOS V201906.00 Major
+ * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -17,6 +18,9 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://aws.amazon.com/freertos
+ * http://www.FreeRTOS.org
  */
 
 /**
@@ -408,7 +412,7 @@ static int _establishMqttConnection( bool awsIotMqttMode,
     networkInfo.pNetworkInterface = pNetworkInterface;
 
     #if ( IOT_MQTT_ENABLE_SERIALIZER_OVERRIDES == 1 ) && defined( IOT_DEMO_MQTT_SERIALIZER )
-        networkInfo.pSerializer = IOT_DEMO_MQTT_SERIALIZER;
+        networkInfo.pMqttSerializer = IOT_DEMO_MQTT_SERIALIZER;
     #endif
 
     /* Set the members of the connection info not set by the initializer. */

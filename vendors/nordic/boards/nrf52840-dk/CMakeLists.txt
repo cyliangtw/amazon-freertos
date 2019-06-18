@@ -16,18 +16,18 @@ set(AFR_MODULE_defender 0 CACHE INTERNAL "")
 # -------------------------------------------------------------------------------------------------
 
 afr_set_board_metadata(ID "nrf52840-dk")
-afr_set_board_metadata(DISPLAY_NAME "NRF52")
+afr_set_board_metadata(DISPLAY_NAME "nRF52840 DK")
 afr_set_board_metadata(DESCRIPTION "Nordic nrf52840-dk Development Kit")
 afr_set_board_metadata(VENDOR_NAME "Nordic")
 afr_set_board_metadata(FAMILY_NAME "NRF52")
 afr_set_board_metadata(CODE_SIGNER "AmazonFreeRTOS-Default")
-afr_set_board_metadata(SUPPORTED_IDE "Segger studio")
-afr_set_board_metadata(RECOMMENDED_IDE "Segger studio")
-afr_set_board_metadata(IDE_VisualStudio_NAME "Visual Studio")
-afr_set_board_metadata(IDE_VisualStudio_COMPILER "segger-arm-gcc")
+afr_set_board_metadata(SUPPORTED_IDE "SeggerStudio")
+afr_set_board_metadata(RECOMMENDED_IDE "SeggerStudio")
+afr_set_board_metadata(IDE_SeggerStudio_NAME "SEGGER Embedded Studio")
+afr_set_board_metadata(IDE_SeggerStudio_COMPILER "segger-arm-gcc")
 afr_set_board_metadata(IS_ACTIVE "TRUE")
 
-afr_set_board_metadata(IDE_VisualStudio_PROJECT_LOCATION "${CMAKE_CURRENT_LIST_DIR}/aws_demos/ses")
+afr_set_board_metadata(IDE_SeggerStudio_PROJECT_LOCATION "${AFR_ROOT_DIR}/projects/nordic/nrf52840-dk/ses/aws_demos")
 afr_set_board_metadata(AWS_DEMOS_CONFIG_FILES_LOCATION "${CMAKE_CURRENT_LIST_DIR}/aws_demos/config_files")
 
 
@@ -193,6 +193,15 @@ target_include_directories(
         "${board_dir}/config_files"
 )
 
+target_link_libraries(
+    AFR::kernel::mcu_port
+    INTERFACE
+        3rdparty::jsmn
+        3rdparty::pkcs11
+        # Require this for bootloader
+        3rdparty::tinycrypt
+)
+
 # BLE
 set(BLE_SUPPORTED 1 CACHE INTERNAL "BLE is supported on this platform.")
 
@@ -200,9 +209,14 @@ afr_mcu_port(ble_hal)
 target_sources(
     AFR::ble_hal::mcu_port
     INTERFACE
+        "${afr_ports_dir}/ble/aws_ble_event_manager_config.h"
+        "${afr_ports_dir}/ble/aws_ble_gap_config.h"
         "${afr_ports_dir}/ble/aws_ble_hal_common_gap.c"
+        "${afr_ports_dir}/ble/aws_ble_hal_dis.c"
+        "${afr_ports_dir}/ble/aws_ble_hal_dis.h"
         "${afr_ports_dir}/ble/aws_ble_hal_gap.c"
         "${afr_ports_dir}/ble/aws_ble_hal_gatt_server.c"
+        "${afr_ports_dir}/ble/aws_ble_hal_internals.h"
 )
 target_include_directories(
     AFR::ble_hal::mcu_port
@@ -212,13 +226,14 @@ target_include_directories(
 )
 
 # OTA
-# Need to get this validated
 afr_mcu_port(ota)
 target_sources(
     AFR::ota::mcu_port
     INTERFACE
         "${afr_ports_dir}/ota/aws_ota_pal.c"
         "${afr_ports_dir}/ota/asn1utility.c"
+        "${afr_ports_dir}/ota/asn1utility.h"
+        "${afr_ports_dir}/ota/aws_ota_pal_settings.h"
 )
 # POSIX
 afr_mcu_port(posix)
@@ -260,6 +275,8 @@ endif()
 
 if(AFR_METADATA_MODE)
     return()
+else()
+    message(FATAL_ERROR "CMake support for Nordic is not complete yet.")
 endif()
 
 

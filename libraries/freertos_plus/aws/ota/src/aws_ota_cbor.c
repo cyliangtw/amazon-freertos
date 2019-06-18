@@ -1,6 +1,6 @@
 /*
- * Amazon FreeRTOS OTA Agent V1.0.1
- * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Amazon FreeRTOS OTA V1.0.2
+ * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -99,7 +99,7 @@ BaseType_t OTA_CBOR_Decode_GetStreamResponseMessage( const uint8_t * pucMessageB
     if( CborNoError == xCborResult )
     {
         xCborResult = cbor_value_get_int( &xCborValue,
-                                          plFileId );
+                                          ( int* )plFileId );
     }
 
     /* Find the block ID. */
@@ -121,7 +121,7 @@ BaseType_t OTA_CBOR_Decode_GetStreamResponseMessage( const uint8_t * pucMessageB
     if( CborNoError == xCborResult )
     {
         xCborResult = cbor_value_get_int( &xCborValue,
-                                          plBlockId );
+                                          ( int* )plBlockId );
     }
 
     /* Find the block size. */
@@ -143,7 +143,7 @@ BaseType_t OTA_CBOR_Decode_GetStreamResponseMessage( const uint8_t * pucMessageB
     if( CborNoError == xCborResult )
     {
         xCborResult = cbor_value_get_int( &xCborValue,
-                                          plBlockSize );
+                                          ( int* )plBlockSize );
     }
 
     /* Find the payload bytes. */

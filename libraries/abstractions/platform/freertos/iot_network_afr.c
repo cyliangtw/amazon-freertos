@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Amazon FreeRTOS Platform V1.0.0
+ * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -17,6 +18,9 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://aws.amazon.com/freertos
+ * http://www.FreeRTOS.org
  */
 
 /**
@@ -528,7 +532,13 @@ size_t IotNetworkAfr_Receive( void * pConnection,
                                      bytesRemaining,
                                      0 );
 
-        if( socketStatus <= 0 )
+        if( socketStatus == SOCKETS_EWOULDBLOCK )
+        {
+            /* The return value EWOULDBLOCK means no data was received within
+             * the socket timeout. Ignore it and try again. */
+            continue;
+        }
+        else if( socketStatus <= 0 )
         {
             IotLogError( "Error %ld while receiving data.", ( long int ) socketStatus );
             break;
