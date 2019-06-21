@@ -1,6 +1,6 @@
 /*
- * Amazon FreeRTOS V1.4.7
- * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Amazon FreeRTOS+POSIX V1.0.4
+ * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,37 +24,14 @@
  */
 
 /**
- * @file aws_secure_sockets_config.h
- * @brief Sockets configuration options.
+ * @file FreeRTOS_POSIX_portable.h
+ * @brief Port-specific configuration of FreeRTOS+POSIX.
  */
 
-#ifndef _AWS_SOCKETS_CONFIG_H_
-#define _AWS_SOCKETS_CONFIG_H_
+#ifndef _FREERTOS_POSIX_PORTABLE_H_
+#define _FREERTOS_POSIX_PORTABLE_H_
 
-/**
- * @brief Byte order of the target MCU.
- *
- * Valid values are pdLITTLE_ENDIAN and pdBIG_ENDIAN.
- */
-#define socketsconfigBYTE_ORDER              pdLITTLE_ENDIAN
+/* This port uses the defaults in FreeRTOS_POSIX_portable_default.h, so this
+ * file is empty. */
 
-/**
- * @brief Default socket send timeout.
- */
-#define socketsconfigDEFAULT_SEND_TIMEOUT    ( 10000 )
-
-/**
- * @brief Default socket receive timeout.
- */
-#define socketsconfigDEFAULT_RECV_TIMEOUT    ( 10000 )
-
-/**
- * @brief Enable metrics of secure socket.
- */
-#define AWS_IOT_SECURE_SOCKETS_METRICS_ENABLED    ( 1 )
-
-/**
- * @brief Default max socket number support
- */
-#define socketsconfigDEFAULT_MAX_NUM_SECURE_SOCKETS     6
-#endif /* _AWS_SOCKETS_CONFIG_H_ */
+#endif /* _FREERTOS_POSIX_PORTABLE_H_ */
