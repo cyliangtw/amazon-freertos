@@ -90,7 +90,7 @@ afr_mcu_port(kernel)
 target_sources(
     AFR::kernel::mcu_port
     INTERFACE
-        # Nuvoton SDK sources (driver)		
+        # Nuvoton SDK sources (driver)      
         "${AFR_VENDORS_DIR}/nuvoton/sdk/middleware/wifi_esp8266/esp8266_wifi.c"
         "${AFR_VENDORS_DIR}/nuvoton/sdk/StdDriver/src/clk.c"
         "${AFR_VENDORS_DIR}/nuvoton/sdk/StdDriver/src/crypto.c"
@@ -124,13 +124,13 @@ target_include_directories(
         "${AFR_3RDPARTY_DIR}/lwip/src/include"
         "${AFR_3RDPARTY_DIR}/lwip/test/fuzz"
         "${AFR_3RDPARTY_DIR}/lwip/src/portable"
-        "${AFR_3RDPARTY_DIR}/lwip/src/portable/arch"		
+        "${AFR_3RDPARTY_DIR}/lwip/src/portable/arch"        
         "${AFR_3RDPARTY_DIR}/pkcs11"
         "${AFR_MODULES_ABSTRACTIONS_DIR}/secure_sockets/include"
-		"${AFR_MODULES_C_SDK_DIR}/standard/common/include"
+        "${AFR_MODULES_C_SDK_DIR}/standard/common/include"
         "${AFR_MODULES_C_SDK_DIR}/standard/common/include/private"
-		"${AFR_MODULES_C_SDK_DIR}/standard/common/include/types"
-		"${AFR_MODULES_C_SDK_DIR}/standard/serializer/include"
+        "${AFR_MODULES_C_SDK_DIR}/standard/common/include/types"
+        "${AFR_MODULES_C_SDK_DIR}/standard/serializer/include"
         "${AFR_MODULES_FREERTOS_PLUS_DIR}/standard/utils/include"
         "${AFR_MODULES_FREERTOS_PLUS_DIR}/standard/provisioning/include"
         "${AFR_MODULES_ABSTRACTIONS_DIR}/pkcs11/include"
@@ -232,10 +232,10 @@ add_executable(
     ${board_code_src}
     ${config_files}
     "${board_dir}/application_code/main.c"
-	"${AFR_VENDORS_DIR}/nuvoton/sdk/Device/Nuvoton/numaker_iot_m487_wifi/Source/ARM/startup_M480.s"
+    "${AFR_VENDORS_DIR}/nuvoton/sdk/Device/Nuvoton/numaker_iot_m487_wifi/Source/ARM/startup_M480.s"
     "${AFR_VENDORS_DIR}/nuvoton/sdk/Device/Nuvoton/numaker_iot_m487_wifi/Source/system_M480.c"
     $<IF:${AFR_IS_TESTING}, ,${network_manager_src}>
-	
+    
 )
 
 target_link_libraries(
@@ -248,20 +248,13 @@ target_link_libraries(
         AFR::pkcs11
 )
 
-# Disable device defender
-afr_module_dependencies(
-    defender
-    PRIVATE
-        3rdparty::dummy
-)
-
 # Convert afx file to bin file
 afr_find_compiler(ARM_KEIL_FROMELF fromelf.exe)
 
 add_custom_command(
     TARGET ${exe_target} POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:${exe_target}>" "${CMAKE_BINARY_DIR}"
-	COMMAND "${ARM_KEIL_FROMELF}" --bin "${exe_target}.axf" --output "${exe_target}.bin"
-	COMMAND "${ARM_KEIL_FROMELF}" --text -c "${exe_target}.axf" --output "${exe_target}.txt"
+    COMMAND "${ARM_KEIL_FROMELF}" --bin "${exe_target}.axf" --output "${exe_target}.bin"
+    COMMAND "${ARM_KEIL_FROMELF}" --text -c "${exe_target}.axf" --output "${exe_target}.txt"
 )
 
