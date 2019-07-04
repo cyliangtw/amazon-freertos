@@ -372,7 +372,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--diag_suppress=550,177,C4017,111,2770,223</MiscControls>
-              <Define>RVDS_ARMCM4_NUC4xx</Define>
+              <Define>RVDS_ARMCM4_NUC4xx NDEBUG</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\..\..\..\lib\include;..\..\..\..\..\lib\include\private;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\Device\Nuvoton\M480\Include;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\inc;..\..\..\..\..\demos\common\include;..\..\..\..\..\lib\FreeRTOS\portable\RVDS\ARM_CM4F;..\;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\include;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\source\protocols\include;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\source\portable\NetworkInterface\M487;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\source\portable\Compiler\Keil;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\CMSIS\Include;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\middleware\wifi_esp8266;..\common\config_files;..\..\..\..\..\lib\third_party\mbedtls\include;..\..\..\..\common\include;..\..\..\..\..\lib\third_party\jsmn;..\..\..\..\..\lib\third_party\pkcs11</IncludePath>
             </VariousControls>
