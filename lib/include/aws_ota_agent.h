@@ -215,6 +215,9 @@ typedef enum
 typedef struct
 {
     uint8_t * pucFilePath; /*!< Local file pathname. */
+#if defined(__CC_ARM)
+#pragma anon_unions
+#endif
     union
     {
         int32_t lFileHandle;      /*!< Device internal file pointer or handle.
