@@ -372,9 +372,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--diag_suppress=550,177,C4017,111,2770,223</MiscControls>
-              <Define>RVDS_ARMCM4_NUC4xx NDEBUG</Define>
+              <Define>RVDS_ARMCM4_NUC4xx NDEBUG __little_endian__=1</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\..\..\lib\include;..\..\..\..\..\lib\include\private;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\Device\Nuvoton\M480\Include;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\inc;..\..\..\..\..\demos\common\include;..\..\..\..\..\lib\FreeRTOS\portable\RVDS\ARM_CM4F;..\;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\include;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\source\protocols\include;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\source\portable\NetworkInterface\M487;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\source\portable\Compiler\Keil;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\CMSIS\Include;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\middleware\wifi_esp8266;..\common\config_files;..\..\..\..\..\lib\third_party\mbedtls\include;..\..\..\..\common\include;..\..\..\..\..\lib\third_party\jsmn;..\..\..\..\..\lib\third_party\pkcs11</IncludePath>
+              <IncludePath>..\..\..\..\..\lib\include;..\..\..\..\..\lib\include\private;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\Device\Nuvoton\M480\Include;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\inc;..\..\..\..\..\demos\common\include;..\..\..\..\..\lib\FreeRTOS\portable\RVDS\ARM_CM4F;..\;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\include;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\source\protocols\include;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\source\portable\NetworkInterface\M487;..\..\..\..\..\lib\FreeRTOS-Plus-TCP\source\portable\Compiler\Keil;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\CMSIS\Include;..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\middleware\wifi_esp8266;..\common\config_files;..\..\..\..\..\lib\third_party\mbedtls\include;..\..\..\..\common\include;..\..\..\..\..\lib\third_party\jsmn;..\..\..\..\..\lib\third_party\pkcs11;..\..\..\..\..\lib\third_party\tinycbor</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -523,6 +523,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\src\uart.c</FilePath>
             </File>
+            <File>
+              <FileName>spim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\src\spim.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -567,6 +572,11 @@
               <FileName>aws_dev_mode_key_provisioning.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\common\devmode_key_provisioning\aws_dev_mode_key_provisioning.c</FilePath>
+            </File>
+            <File>
+              <FileName>aws_ota_update_demo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\common\ota\aws_ota_update_demo.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1052,6 +1062,66 @@
               <FileName>platform_util.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\..\lib\third_party\mbedtls\library\platform_util.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>lib-ota</GroupName>
+          <Files>
+            <File>
+              <FileName>aws_ota_agent.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\ota\aws_ota_agent.c</FilePath>
+            </File>
+            <File>
+              <FileName>aws_ota_cbor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\ota\aws_ota_cbor.c</FilePath>
+            </File>
+            <File>
+              <FileName>aws_ota_pal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\ota\portable\nuvoton\numaker-iot-m487\aws_ota_pal.c</FilePath>
+            </File>
+            <File>
+              <FileName>aws_ota_pal_spim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\ota\portable\nuvoton\numaker-iot-m487\aws_ota_pal_spim.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>3rd-tinycbor</GroupName>
+          <Files>
+            <File>
+              <FileName>cborencoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\third_party\tinycbor\cborencoder.c</FilePath>
+            </File>
+            <File>
+              <FileName>cborencoder_close_container_checked.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\third_party\tinycbor\cborencoder_close_container_checked.c</FilePath>
+            </File>
+            <File>
+              <FileName>cborerrorstrings.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\third_party\tinycbor\cborerrorstrings.c</FilePath>
+            </File>
+            <File>
+              <FileName>cborparser.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\third_party\tinycbor\cborparser.c</FilePath>
+            </File>
+            <File>
+              <FileName>cborparser_dup_string.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\third_party\tinycbor\cborparser_dup_string.c</FilePath>
+            </File>
+            <File>
+              <FileName>cborpretty.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\third_party\tinycbor\cborpretty.c</FilePath>
             </File>
           </Files>
         </Group>
