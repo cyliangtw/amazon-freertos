@@ -54,17 +54,17 @@
 #include "NuMicro.h"
 
 /* Declare the firmware version structure for all to see. */
-#if 0
+
 const AppVersion32_t xAppFirmwareVersion
+#if defined(__CC_ARM)
+#pragma anon_unions
+#endif
 	= {
 	 .u.x.ucMajor = APP_VERSION_MAJOR,
    .u.x.ucMinor = APP_VERSION_MINOR,
    .u.x.usBuild = APP_VERSION_BUILD,
 };
-#else
-const AppVersion32_t xAppFirmwareVersion = {(APP_VERSION_MAJOR << 24 )|(APP_VERSION_MINOR<<16)|APP_VERSION_BUILD};
 
-#endif
 
 /* Sleep on this platform */
 #define Sleep( nMs )    vTaskDelay( pdMS_TO_TICKS( nMs ) );
@@ -177,6 +177,7 @@ int main( void )
     /* Perform any hardware initialization that does not require the RTOS to be
      * running.  */
     prvMiscInitialization();
+    configPRINTF( ( "FreeRTOS App Ver:%x\n", xAppFirmwareVersion));
     configPRINTF( ( "FreeRTOS_IPInit\n" ) );	
     xTaskCreate( vCheckTask, "Check", mainCHECK_TASK_STACK_SIZE, NULL, mainCHECK_TASK_PRIORITY, NULL );	
 
