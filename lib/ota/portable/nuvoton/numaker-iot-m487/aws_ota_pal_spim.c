@@ -50,6 +50,9 @@ bool_t NVT_SPI_Flash_Init(void)
 {
     uint8_t     idBuf[3];
     bool_t result = pdFALSE;
+
+    DEFINE_OTA_METHOD_NAME( "NVT_SPI_Flash_Init" );    
+    
     /* Unlock protected registers */
     SYS_UnlockReg();
     
@@ -79,15 +82,15 @@ bool_t NVT_SPI_Flash_Init(void)
 
     if (SPIM_InitFlash(1) != 0)        /* Initialized SPI flash */
     {
-        printf("SPIM flash initialize failed!\n");
+        OTA_LOG_L1("[%s] SPIM flash initialize failed!\n", OTA_METHOD_NAME);
         goto lexit;
     }
 
     SPIM_ReadJedecId(idBuf, sizeof (idBuf), 1);
-    printf("SPIM get JEDEC ID=0x%02X, 0x%02X, 0x%02X\n", idBuf[0], idBuf[1], idBuf[2]);
+    OTA_LOG_L1("[%s] SPIM get JEDEC ID=0x%02X, 0x%02X, 0x%02X\n", OTA_METHOD_NAME, idBuf[0], idBuf[1], idBuf[2]);
     if( (idBuf[0] != 0xef) || (idBuf[1] != 0x40) || (idBuf[2] != 0x16) )
     {
-        printf("SPIM get wrong JEDEC ID\n");
+        OTA_LOG_L1("[%s] SPIM get wrong JEDEC ID\n", OTA_METHOD_NAME);
         goto lexit;
     }    
     SPIM_Enable_4Bytes_Mode(USE_4_BYTES_MODE, 1);
@@ -104,6 +107,8 @@ bool_t NVT_SPI_Flash_Bank_Erase(uint32_t startAddress, uint32_t bankSize)
     uint32_t    *pData;
     bool_t result = pdFALSE;
 
+    DEFINE_OTA_METHOD_NAME( "NVT_SPI_Flash_Bank_Erase" ); 
+    
     /* Unlock protected registers */
     SYS_UnlockReg();
     
@@ -112,21 +117,21 @@ bool_t NVT_SPI_Flash_Bank_Erase(uint32_t startAddress, uint32_t bankSize)
      */
     if( (startAddress + bankSize) > FLASH_BANK_UB )
     {
-        printf("FAILED!\n");
-        printf("Exceed reserved Flash Bank boundary 0x%x > 0x%x \n", (startAddress + bankSize), FLASH_BANK_UB);
+        OTA_LOG_L1("[%s] FAILED!\n", OTA_METHOD_NAME);
+        OTA_LOG_L1("[%s] Exceed reserved Flash Bank boundary 0x%x > 0x%x \n", OTA_METHOD_NAME, (startAddress + bankSize), FLASH_BANK_UB);
         goto lexit;
     }
-    printf("Erase SPI flash bank 0x%x ~ 0x%x ...", startAddress, (startAddress + bankSize));
+    OTA_LOG_L1("[%s] Erase SPI flash bank 0x%x ~ 0x%x ...", OTA_METHOD_NAME, startAddress, (startAddress + bankSize));
     for (offset = 0; offset < bankSize; offset += FLASH_BLOCK_SIZE )
     {
       SPIM_EraseBlock(startAddress+offset, USE_4_BYTES_MODE, OPCODE_BE_64K, 1, 1);
     }
-    printf("done.\n");
+    OTA_LOG_L1("[%s] done.\n", OTA_METHOD_NAME);
 
     /*
      *  Verify flash page be erased
      */
-    printf("Verify SPI flash block 0x%x be erased...", startAddress);
+    OTA_LOG_L1("[%s] Verify SPI flash block 0x%x be erased...", OTA_METHOD_NAME, startAddress);
     for (offset = 0; offset < bankSize; offset += BUFFER_SIZE)
     {
         memset(spi_buff, 0, BUFFER_SIZE);
@@ -137,8 +142,8 @@ bool_t NVT_SPI_Flash_Bank_Erase(uint32_t startAddress, uint32_t bankSize)
         {
             if (*pData != 0xFFFFFFFF)
             {
-                printf("FAILED!\n");
-                printf("Flash address 0x%x, read 0x%x!\n", startAddress+offset+i, *pData);
+                OTA_LOG_L1("[%s] FAILED!\n", OTA_METHOD_NAME);
+                OTA_LOG_L1("[%s] Flash address 0x%x, read 0x%x!\n", OTA_METHOD_NAME, startAddress+offset+i, *pData);
                 goto lexit;
             }
         }
@@ -158,14 +163,16 @@ int32_t NVT_SPI_Flash_Block_Write(uint32_t ulOffset,
                            uint32_t ulBlockSize )
 {
     int32_t lResult = 0;
+
+    DEFINE_OTA_METHOD_NAME( "NVT_SPI_Flash_Block_Write" ); 
     
     /* Unlock protected registers */
     SYS_UnlockReg();
     
     if( (ulOffset + ulBlockSize) > FLASH_BANK_UB )
     {
-        printf("FAILED!\n");
-        printf("Exceed reserved Flash Bank boundary 0x%x > 0x%x \n", (ulOffset + ulBlockSize), FLASH_BANK_UB);
+        OTA_LOG_L1("[%s] FAILED!\n", OTA_METHOD_NAME);
+        OTA_LOG_L1("[%s] Exceed reserved Flash Bank boundary 0x%x > 0x%x \n", OTA_METHOD_NAME, (ulOffset + ulBlockSize), FLASH_BANK_UB);
         lResult = -1;
         goto lexit;
     }
@@ -185,14 +192,16 @@ int32_t NVT_SPI_Flash_Block_Read(uint32_t ulOffset,
                            uint32_t ulBlockSize )
 {
     int32_t lResult = 0;
+
+    DEFINE_OTA_METHOD_NAME( "NVT_SPI_Flash_Block_Read" ); 
     
     /* Unlock protected registers */
     SYS_UnlockReg();
     
     if( (ulOffset + ulBlockSize) > FLASH_BANK_UB )
     {
-        printf("FAILED!\n");
-        printf("Exceed reserved Flash Bank boundary 0x%x > 0x%x \n", (ulOffset + ulBlockSize), FLASH_BANK_UB);
+        OTA_LOG_L1("[%s] FAILED!\n");
+        OTA_LOG_L1("[%s] Exceed reserved Flash Bank boundary 0x%x > 0x%x \n", OTA_METHOD_NAME, (ulOffset + ulBlockSize), FLASH_BANK_UB);
         lResult = -1;
         goto lexit;
     }
