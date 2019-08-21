@@ -140,7 +140,14 @@ static bool_t prvFLASH_update(uint32_t u32StartAddr, uint8_t * pucData, uint32_t
     uint32_t    *pDataSrc;             /* flash data    */    
     uint32_t    u32EndAddr = (u32StartAddr + ulDataSize);
     uint32_t    u32Pattern = 0xFFFFFFFF;
+    bool_t result = pdFALSE;
+    
+    DEFINE_OTA_METHOD_NAME( "prvFLASH_update" );
 
+    /* Unlock protected registers */
+    SYS_UnlockReg();
+    FMC_Open();                        /* Enable FMC ISP function */
+    FMC_ENABLE_AP_UPDATE();            /* Enable APROM update. */
     FMC_Erase(u32StartAddr);    
      /* Verify if each data word from flash u32StartAddr to u32EndAddr be 0xFFFFFFFF.  */
     for (u32Addr = u32StartAddr; u32Addr < u32EndAddr; u32Addr += 4)
@@ -149,8 +156,9 @@ static bool_t prvFLASH_update(uint32_t u32StartAddr, uint8_t * pucData, uint32_t
 
         if (u32data != u32Pattern )     /* Verify if data matched. */
         {
-            printf("\nFMC_Read data verify failed at address 0x%x, read=0x%x, expect=0x%x\n", u32Addr, u32data, u32Pattern);
-            return pdFALSE;                 /* data verify failed */
+            OTA_LOG_L1( "[%s] FMC_Read data verify failed at address 0x%x, read=0x%x, expect=0x%x\n", OTA_METHOD_NAME, u32Addr, u32data, u32Pattern);   
+            result = pdFALSE;                 /* data verify failed */
+            goto lexit;
         }
     }
     
@@ -159,10 +167,18 @@ static bool_t prvFLASH_update(uint32_t u32StartAddr, uint8_t * pucData, uint32_t
     for (u32Addr = u32StartAddr; u32Addr < u32EndAddr; u32Addr += 4)
     {
         FMC_Write(u32Addr, *pDataSrc);          /* Program flash */
+        //printf("#### FMC write: 0x%x, val:0x%x \n", u32Addr, *pDataSrc);
         pDataSrc++;
     }    
+    result = pdTRUE; 
     
-    return pdTRUE;
+lexit:   
+    FMC_DISABLE_AP_UPDATE();           /* Disable APROM update. */
+    FMC_Close();                       /* Disable FMC ISP function */
+    /* Lock protected registers */
+    SYS_LockReg();   
+    
+    return result;
     
 }
 
@@ -258,7 +274,8 @@ OTA_Err_t prvPAL_CreateFileForRx( OTA_FileContext_t * const C )
             pxCurOTADesc->ulImageOffset = 0;
             OTA_LOG_L1( "[%s] Receive file created.\r\n", OTA_METHOD_NAME );
             C->pucFile = ( uint8_t * ) pxCurOTADesc;
-            eResult = kOTA_Err_None;
+//            prvFLASH_update(NVT_BOOT_IMG_HEAD_BASE, AWS_BOOT_IMAGE_SIGNATURE, 8);
+            eResult = kOTA_Err_None;          
         }
     }
     else
@@ -659,12 +676,14 @@ OTA_Err_t prvPAL_ResetDevice( void )
 
     /* Short delay for debug log output before reset. */
     vTaskDelayUntil( &xLastExecutionTime, OTA_DELAY );
-    
-    /* Lock protected registers */
-    SYS_LockReg();
-    SYS_ResetCPU(); // SYS_ResetChip();
-    /* Unlock protected registers before setting Brown-out detector function and Power-down mode */
+
+    /* Unlock protected registers before setting Brown-out detector function and Power-down mode */    
     SYS_UnlockReg();
+    FMC_Open();
+    FMC_SetBootSource(1);   // Boot From LD-ROM
+//    NVIC_SystemReset();   
+    SYS_ResetCPU(); // SYS_ResetChip();
+    while(1);
     
     /* We shouldn't actually get here if the board supports the auto reset.
      * But, it doesn't hurt anything if we do although someone will need to
@@ -700,7 +719,7 @@ OTA_Err_t prvPAL_SetPlatformImageState( OTA_ImageState_t eState )
     xDescCopy = *pxAppImgDesc;                    /* Copy image descriptor from flash into RAM struct. */
 
     
-    if( (eState != eOTA_ImageState_Unknown) || (eState <= eOTA_LastImageState) )
+    if( (eState == eOTA_ImageState_Unknown) || (eState > eOTA_LastImageState) )
     {
         OTA_LOG_L1( "[%s] ERROR - Invalid image state provided.\r\n", OTA_METHOD_NAME );
         eResult = kOTA_Err_BadImageState;
