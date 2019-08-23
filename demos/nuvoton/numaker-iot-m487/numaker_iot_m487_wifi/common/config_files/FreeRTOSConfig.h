@@ -56,7 +56,7 @@
 #define configTICK_RATE_HZ                           ( ( TickType_t ) 1000 )
 #define configMAX_PRIORITIES                         ( 7 )
 #define configMINIMAL_STACK_SIZE                     ( ( uint16_t ) 90 )
-#define configTOTAL_HEAP_SIZE                        ( ( size_t ) ( 96 * 1024 ) )//( ( size_t ) ( 64 * 1024 ) )
+#define configTOTAL_HEAP_SIZE                        ( ( size_t ) ( 90 * 1024 ) )//( ( size_t ) ( 64 * 1024 ) )
 #define configMAX_TASK_NAME_LEN                      ( 16 )
 #define configUSE_TRACE_FACILITY                     1
 #define configUSE_16_BIT_TICKS                       0
@@ -138,7 +138,7 @@ void vLoggingPrintf( const char * pcFormat,
                      ... );
 
 /* Map the FreeRTOS printf() to the logging task printf. */
-#define configPRINTF( x )          printf x //vLoggingPrintf x
+#define configPRINTF( x )          vLoggingPrintf x//printf x //vLoggingPrintf x
 
 /* Map the logging task's printf to the board specific retarget output function. */
 #define configPRINT_STRING    printf

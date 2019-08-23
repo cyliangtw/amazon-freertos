@@ -858,7 +858,7 @@ OTA_Err_t prvPAL_SetPlatformImageState( OTA_ImageState_t eState )
 OTA_PAL_ImageState_t prvPAL_GetPlatformImageState( void )
 {
     BootImageDescriptor_t xDescCopy;
-    OTA_PAL_ImageState_t eImageState = eOTA_PAL_ImageState_Invalid;
+    OTA_PAL_ImageState_t eImageState = eOTA_PAL_ImageState_Unknown; //eOTA_PAL_ImageState_Invalid;
     const BootImageDescriptor_t * pxAppImgDesc;
 
     pxAppImgDesc = ( const BootImageDescriptor_t * ) NVT_BOOT_IMG_HEAD_BASE; /*lint !e923 !e9027 !e9029 !e9033 !e9079 !e9078 !e9087 Please see earlier lint comment header. */
