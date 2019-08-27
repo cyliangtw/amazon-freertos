@@ -203,15 +203,11 @@ static bool_t prvContextUpdateImageHeaderAndTrailer( OTA_FileContext_t * C )
     BootImageDescriptor_t xImgDesc;    
     BootImageTrailer_t xImgTrailer;
 
-    memcpy( xImgHeader.cImgSignature,
-            AWS_BOOT_IMAGE_SIGNATURE,
-            sizeof( xImgHeader.cImgSignature ) );
-    xImgHeader.ucImgFlags = AWS_BOOT_FLAG_IMG_NEW;
-
     /* Pointer to the boot image header in the flash. */
     pxImgDesc = ( BootImageDescriptor_t * ) NVT_BOOT_IMG_HEAD_BASE;
     xImgDesc = *pxImgDesc;
-    memcpy( xImgDesc.xImgHeader, &xImgHeader, sizeof(BootImageHeader_t) );
+    xImgDesc.xImgHeader.ucImgFlags = AWS_BOOT_FLAG_IMG_NEW;
+//    memcpy( xImgDesc.xImgHeader, &xImgHeader, sizeof(BootImageHeader_t) );
     
     /* Write Boot header to flash. */
     bProgResult = prvFLASH_update(NVT_BOOT_IMG_HEAD_BASE, 
@@ -238,11 +234,7 @@ static bool_t prvContextUpdateImageHeaderAndTrailer( OTA_FileContext_t * C )
     return bProgResult;
 }
 
-/* Used to set the high bit of Windows error codes for a negative return value. */
-#define OTA_PAL_INT16_NEGATIVE_MASK    ( 1 << 15 )
 
-/* Size of buffer used in file operations on this platform (Windows). */
-#define OTA_PAL_WIN_BUF_SIZE ( ( size_t ) 4096UL )
 
 /* Attempt to create a new receive file for the file chunks as they come in. */
 
@@ -274,8 +266,25 @@ OTA_Err_t prvPAL_CreateFileForRx( OTA_FileContext_t * const C )
             pxCurOTADesc->ulImageOffset = 0;
             OTA_LOG_L1( "[%s] Receive file created.\r\n", OTA_METHOD_NAME );
             C->pucFile = ( uint8_t * ) pxCurOTADesc;
-//            prvFLASH_update(NVT_BOOT_IMG_HEAD_BASE, AWS_BOOT_IMAGE_SIGNATURE, 8);
-            eResult = kOTA_Err_None;          
+            
+            /* Update Boot Descriptor */
+            BootImageDescriptor_t xDescCopy;
+            memcpy(xDescCopy.xImgHeader.cImgSignature, AWS_BOOT_IMAGE_SIGNATURE, AWS_BOOT_IMAGE_SIGNATURE_SIZE);
+            xDescCopy.xImgHeader.ucImgFlags = AWS_BOOT_FLAG_IMG_INVALID;
+            xDescCopy.pvStartAddr = 0x00;
+            xDescCopy.pvEndAddr = xDescCopy.pvStartAddr + C->ulFileSize -1;
+            xDescCopy.pvExecAddr = 0x00;
+
+            if( pdFALSE == prvFLASH_update(NVT_BOOT_IMG_HEAD_BASE, (uint8_t *)&xDescCopy, 
+                                            sizeof( BootImageDescriptor_t) ) )
+            {
+                OTA_LOG_L1( "[%s] ERROR - FMC write failed\r\n", OTA_METHOD_NAME );
+            } 
+            else 
+            {
+            
+                eResult = kOTA_Err_None;
+            }
         }
     }
     else
@@ -316,6 +325,7 @@ int16_t prvPAL_WriteBlock( OTA_FileContext_t * const C,
 
     if( prvContextValidate( C ) == pdTRUE )
     {
+#if 0   /* If execute image not generate boot-descriptor by utility, 1st block will have no boot-desc info */
         /* OTA image 1st block contain Boot Image Descriptor info */
         if( ulOffset == 0 ) 
         {
@@ -331,7 +341,7 @@ int16_t prvPAL_WriteBlock( OTA_FileContext_t * const C,
                 OTA_LOG_L1( "[%s] ERROR - FMC write failed\r\n", OTA_METHOD_NAME );
             }
         }
-        
+#endif        
         lResult = NVT_SPI_Flash_Block_Write(ulOffset, pacData, ulBlockSize);
 
         if( lResult < 0 )
@@ -680,9 +690,33 @@ OTA_Err_t prvPAL_ResetDevice( void )
     /* Unlock protected registers before setting Brown-out detector function and Power-down mode */    
     SYS_UnlockReg();
     FMC_Open();
+#if 0
     FMC_SetBootSource(1);   // Boot From LD-ROM
+#else
+    /*
+        CONFIG0[7:6]
+        00 = Boot from LDROM with IAP mode.
+        01 = Boot from LDROM without IAP mode.
+        10 = Boot from APROM with IAP mode.
+        11 = Boot from APROM without IAP mode.
+    */
+    uint32_t  au32Config[2];
+    if( FMC_ReadConfig(au32Config, 2) < 0)
+    {
+          OTA_LOG_L1( " Read FMC config failed.\r\n");
+    }
+    if( (au32Config[0] & 0x40) )        /* Check if it's boot from APROM/LDROM with IAP. */
+    {
+        FMC_ENABLE_CFG_UPDATE();       /* Enable User Configuration update. */
+        au32Config[0] &= ~0x40;        /* Select IAP boot mode. */
+        FMC_WriteConfig(au32Config, 2);/* Update User Configuration CONFIG0 and CONFIG1. */
+        SYS_ResetChip();    /* Perform chip reset to make new User Config take effect. */
+    }
+    /* Remap to LD-ROM*/
+    FMC_SetVectorPageAddr(FMC_LDROM_BASE);    // Remap to LD-ROM address
+#endif    
 //    NVIC_SystemReset();   
-    SYS_ResetCPU(); // SYS_ResetChip();
+    SYS_ResetCPU();
     while(1);
     
     /* We shouldn't actually get here if the board supports the auto reset.
@@ -865,7 +899,7 @@ OTA_PAL_ImageState_t prvPAL_GetPlatformImageState( void )
     xDescCopy = *pxAppImgDesc;
 
     /**
-     *  Check if valid magic code is present for the application image in lower bank.
+     *  Check if valid magic code is present for the application image.
      */
     if( memcmp( pxAppImgDesc->xImgHeader.cImgSignature,
                 AWS_BOOT_IMAGE_SIGNATURE,
