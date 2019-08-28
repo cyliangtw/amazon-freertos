@@ -206,7 +206,7 @@ static bool_t prvContextUpdateImageHeaderAndTrailer( OTA_FileContext_t * C )
     /* Pointer to the boot image header in the flash. */
     pxImgDesc = ( BootImageDescriptor_t * ) NVT_BOOT_IMG_HEAD_BASE;
     xImgDesc = *pxImgDesc;
-    xImgDesc.xImgHeader.ucImgFlags = AWS_BOOT_FLAG_IMG_NEW;
+    xImgDesc.xImgHeader.ucImgFlags = AWS_BOOT_FLAG_IMG_PENDING_COMMIT; //AWS_BOOT_FLAG_IMG_NEW;
 //    memcpy( xImgDesc.xImgHeader, &xImgHeader, sizeof(BootImageHeader_t) );
     
     /* Write Boot header to flash. */
@@ -873,7 +873,7 @@ OTA_Err_t prvPAL_SetPlatformImageState( OTA_ImageState_t eState )
         }
     }
 #endif
-
+    OTA_LOG_L1( "[%s] image state [%d] ---Flag[0x%x].\r\n", OTA_METHOD_NAME, eState, xDescCopy.xImgHeader.ucImgFlags);
     return eResult;
 }
 
@@ -894,6 +894,7 @@ OTA_PAL_ImageState_t prvPAL_GetPlatformImageState( void )
     BootImageDescriptor_t xDescCopy;
     OTA_PAL_ImageState_t eImageState = eOTA_PAL_ImageState_Unknown; //eOTA_PAL_ImageState_Invalid;
     const BootImageDescriptor_t * pxAppImgDesc;
+    DEFINE_OTA_METHOD_NAME( "prvPAL_GetPlatformImageState" );
 
     pxAppImgDesc = ( const BootImageDescriptor_t * ) NVT_BOOT_IMG_HEAD_BASE; /*lint !e923 !e9027 !e9029 !e9033 !e9079 !e9078 !e9087 Please see earlier lint comment header. */
     xDescCopy = *pxAppImgDesc;
@@ -923,7 +924,7 @@ OTA_PAL_ImageState_t prvPAL_GetPlatformImageState( void )
             
         
     }
-
+    OTA_LOG_L1( "[%s] image state [%d] -- Flag[0x%x].\r\n", OTA_METHOD_NAME, eImageState, xDescCopy.xImgHeader.ucImgFlags);
     return eImageState;
 }
 
