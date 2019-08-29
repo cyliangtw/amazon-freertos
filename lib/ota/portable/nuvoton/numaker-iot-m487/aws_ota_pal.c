@@ -66,7 +66,7 @@ typedef union
     {
         char cImgSignature[ AWS_BOOT_IMAGE_SIGNATURE_SIZE ]; /* Signature identifying a valid application: AWS_BOOT_IMAGE_SIGNATURE. */
         uint8_t ucImgFlags;                                  /* Flags from the AWS_BOOT_IMAGE_FLAG_IMG*, above. */
-    };                                                       /*lint !e657 This non-portable structure is strictly for the Microchip platform. */
+    };                                                       
 } BootImageHeader_t;
 
 
@@ -206,8 +206,7 @@ static bool_t prvContextUpdateImageHeaderAndTrailer( OTA_FileContext_t * C )
     /* Pointer to the boot image header in the flash. */
     pxImgDesc = ( BootImageDescriptor_t * ) NVT_BOOT_IMG_HEAD_BASE;
     xImgDesc = *pxImgDesc;
-    xImgDesc.xImgHeader.ucImgFlags = AWS_BOOT_FLAG_IMG_PENDING_COMMIT; //AWS_BOOT_FLAG_IMG_NEW;
-//    memcpy( xImgDesc.xImgHeader, &xImgHeader, sizeof(BootImageHeader_t) );
+    xImgDesc.xImgHeader.ucImgFlags = AWS_BOOT_FLAG_IMG_NEW;
     
     /* Write Boot header to flash. */
     bProgResult = prvFLASH_update(NVT_BOOT_IMG_HEAD_BASE, 
@@ -325,7 +324,8 @@ int16_t prvPAL_WriteBlock( OTA_FileContext_t * const C,
 
     if( prvContextValidate( C ) == pdTRUE )
     {
-#if 0   /* If execute image not generate boot-descriptor by utility, 1st block will have no boot-desc info */
+#if 0
+        /* If execute image not generate boot-descriptor by utility, 1st block will have no boot-desc info */
         /* OTA image 1st block contain Boot Image Descriptor info */
         if( ulOffset == 0 ) 
         {
@@ -690,9 +690,7 @@ OTA_Err_t prvPAL_ResetDevice( void )
     /* Unlock protected registers before setting Brown-out detector function and Power-down mode */    
     SYS_UnlockReg();
     FMC_Open();
-#if 0
-    FMC_SetBootSource(1);   // Boot From LD-ROM
-#else
+    // Boot From LD-ROM
     /*
         CONFIG0[7:6]
         00 = Boot from LDROM with IAP mode.
@@ -713,9 +711,7 @@ OTA_Err_t prvPAL_ResetDevice( void )
         SYS_ResetChip();    /* Perform chip reset to make new User Config take effect. */
     }
     /* Remap to LD-ROM*/
-    FMC_SetVectorPageAddr(FMC_LDROM_BASE);    // Remap to LD-ROM address
-#endif    
-//    NVIC_SystemReset();   
+    FMC_SetVectorPageAddr(FMC_LDROM_BASE);    // Remap to LD-ROM address       
     SYS_ResetCPU();
     while(1);
     
@@ -825,54 +821,7 @@ OTA_Err_t prvPAL_SetPlatformImageState( OTA_ImageState_t eState )
             eResult = kOTA_Err_BadImageState;
         }
     }
-#if 0    
-    else
-    {
-        if( eState == eOTA_ImageState_Accepted )
-        {
-            OTA_LOG_L1( "[%s] Not in commit pending so can not mark image valid .\r\n", OTA_METHOD_NAME );
-            eResult = ( uint32_t ) kOTA_Err_CommitFailed ;
-        }
-        else if( eState == eOTA_ImageState_Rejected )
-        {
-            OTA_LOG_L1( "[%s] Rejected image.\r\n", OTA_METHOD_NAME );
 
-            /* The OTA on program image bank is rejected so erase the bank.  */
-            if( prvSPI_FLASH_EraseBank() == ( bool_t ) pdFALSE )
-            {
-                OTA_LOG_L1( "[%s] Error: Failed to erase the flash! .\r\n", OTA_METHOD_NAME );
-                eResult = ( uint32_t ) kOTA_Err_RejectFailed;
-            }
-            else
-            {
-                eResult = kOTA_Err_None;
-            }
-        }
-        else if( eState == eOTA_ImageState_Aborted )
-        {
-            OTA_LOG_L1( "[%s] Aborted image.\r\n", OTA_METHOD_NAME );
-
-            /* The OTA on program image bank is rejected so erase the bank.  */
-            if( prvSPI_FLASH_EraseBank() == ( bool_t ) pdFALSE )
-            {
-                OTA_LOG_L1( "[%s] Error: Failed to erase the flash! .\r\n", OTA_METHOD_NAME);
-                eResult = ( uint32_t ) kOTA_Err_AbortFailed ;
-            }
-            else
-            {
-                eResult = kOTA_Err_None;
-            }
-        }
-        else if( eState == eOTA_ImageState_Testing )
-        {
-            eResult = kOTA_Err_None;
-        }
-        else
-        {
-            eResult = kOTA_Err_BadImageState;
-        }
-    }
-#endif
     OTA_LOG_L1( "[%s] image state [%d] ---Flag[0x%x].\r\n", OTA_METHOD_NAME, eState, xDescCopy.xImgHeader.ucImgFlags);
     return eResult;
 }
