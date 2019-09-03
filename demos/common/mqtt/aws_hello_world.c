@@ -87,7 +87,32 @@
 /**
  * @brief The topic that the MQTT client both subscribes and publishes to.
  */
-#define echoTOPIC_NAME           ( ( const uint8_t * ) "freertos/demos/echo" )
+
+#ifndef NVT_DEMO_SENSOR
+  #define echoTOPIC_NAME           ( ( const uint8_t * ) "freertos/demos/echo" )
+#else
+  #include "NuMicro.h"
+  #define AWS_IOT_MQTT_THINGNAME                  clientcredentialIOT_THING_NAME //"Nuvoton-RTOS-D002"
+  #define AWS_IOT_MQTT_CLIENTNAME                 "Nuvoton Client"
+
+  const char *USER_MQTT_TOPIC_FILTERS[] = {
+    "Nuvoton/RTOS/+"
+  };
+  const char USER_MQTT_TOPIC_PUBLISH_MESSAGE[] = "{ \"message\": \"Hello from Nuvoton RTOS device\" }";
+
+  /* Update thing shadow */
+  const char UPDATETHINGSHADOW_MQTT_TOPIC[] = "$aws/things/" AWS_IOT_MQTT_THINGNAME "/shadow/update";
+  const char *UPDATETHINGSHADOW_MQTT_TOPIC_FILTERS[] = {
+    "$aws/things/" AWS_IOT_MQTT_THINGNAME "/shadow/update/accepted",
+    "$aws/things/" AWS_IOT_MQTT_THINGNAME "/shadow/update/rejected"
+  };
+  const char UPDATETHINGSHADOW_MQTT_TOPIC_PUBLISH_MESSAGE[] = "{ \"state\": { \"reported\": { \"temperature\": %2.2f } } }";
+  #define echoTOPIC_NAME  UPDATETHINGSHADOW_MQTT_TOPIC //"$aws/things/Nuvoton-RTOS-D002/shadow/update"
+  #define echoTOPIC_NAME  "nuvoton/sensor/data"
+  #define sensorSubTOPIC_NAME  "nuvoton/sensor/alert"
+  extern float g_sensor_val;
+#endif
+
 
 /**
  * @brief The string appended to messages that are echoed back to the MQTT broker.
@@ -106,7 +131,11 @@
  * @brief Dimension of the character array buffers used to hold data (strings in
  * this case) that is published to and received from the MQTT broker (in the cloud).
  */
+#ifndef NVT_DEMO_SENSOR
 #define echoMAX_DATA_LENGTH      20
+#else
+#define echoMAX_DATA_LENGTH      128
+#endif
 
 /**
  * @brief A block time of 0 simply means "don't block".
@@ -250,8 +279,11 @@ static void prvPublishNextMessage( BaseType_t xMessageNumber )
     /* Create the message that will be published, which is of the form "Hello World n"
      * where n is a monotonically increasing number. Note that snprintf appends
      * terminating null character to the cDataBuffer. */
+#ifndef NVT_DEMO_SENSOR
     ( void ) snprintf( cDataBuffer, echoMAX_DATA_LENGTH, "Hello World %d", ( int ) xMessageNumber );
-
+#else
+    ( void ) snprintf( cDataBuffer, echoMAX_DATA_LENGTH, UPDATETHINGSHADOW_MQTT_TOPIC_PUBLISH_MESSAGE, g_sensor_val);
+#endif
     /* Setup the publish parameters. */
     memset( &( xPublishParameters ), 0x00, sizeof( xPublishParameters ) );
     xPublishParameters.pucTopic = echoTOPIC_NAME;
@@ -351,10 +383,15 @@ static BaseType_t prvSubscribe( void )
     MQTTAgentSubscribeParams_t xSubscribeParams;
 
     /* Setup subscribe parameters to subscribe to echoTOPIC_NAME topic. */
+#ifndef NVT_DEMO_SENSOR
     xSubscribeParams.pucTopic = echoTOPIC_NAME;
+    xSubscribeParams.usTopicLength = ( uint16_t ) strlen( ( const char * ) echoTOPIC_NAME );
+#else
+    xSubscribeParams.pucTopic = sensorSubTOPIC_NAME;
+    xSubscribeParams.usTopicLength = ( uint16_t ) strlen( ( const char * ) sensorSubTOPIC_NAME );
+#endif
     xSubscribeParams.pvPublishCallbackContext = NULL;
     xSubscribeParams.pxPublishCallback = prvMQTTCallback;
-    xSubscribeParams.usTopicLength = ( uint16_t ) strlen( ( const char * ) echoTOPIC_NAME );
     xSubscribeParams.xQoS = eMQTTQoS1;
 
     /* Subscribe to the topic. */
@@ -388,6 +425,21 @@ static MQTTBool_t prvMQTTCallback( void * pvUserData,
     /* Remove warnings about the unused parameters. */
     ( void ) pvUserData;
 
+#ifdef NVT_DEMO_SENSOR
+    /*
+      LED_RED = PH_0,
+      LED_YELLOW = PH_1,
+      LED_GREEN = PH_2,
+     */    
+    configPRINTF( ( "[Info]: Receive AWS LED turn on: %s.\r\n", (uint8_t *)pxPublishParameters->pvData ) );
+    /* Configure PH.0/1/2 as Output mode */
+    GPIO_SetMode(PH, BIT0|BIT1|BIT2, GPIO_MODE_OUTPUT);
+    /* Toggle PH.0 */
+    PH0 = !PH0; // toggle red LED
+    PH2 = 1; // turn off green LED
+    return eMQTTFalse;
+#endif  
+  
     /* Don't expect the callback to be invoked for any other topics. */
     configASSERT( ( size_t ) ( pxPublishParameters->usTopicLength ) == strlen( ( const char * ) echoTOPIC_NAME ) );
     configASSERT( memcmp( pxPublishParameters->pucTopic, echoTOPIC_NAME, ( size_t ) ( pxPublishParameters->usTopicLength ) ) == 0 );
@@ -433,6 +485,7 @@ static MQTTBool_t prvMQTTCallback( void * pvUserData,
 }
 /*-----------------------------------------------------------*/
 
+#ifndef NVT_DEMO_SENSOR
 static void prvMQTTConnectAndPublishTask( void * pvParameters )
 {
     BaseType_t xX;
@@ -498,9 +551,57 @@ static void prvMQTTConnectAndPublishTask( void * pvParameters )
     configPRINTF( ( "MQTT echo demo finished.\r\n" ) );
     configPRINTF( ( "----Demo finished----\r\n" ) );
     vMessageBufferDelete( xEchoMessageBuffer );
+    vTaskDelete( NULL ); /* Delete this task. */
+}
+#else
+static void prvMQTTConnectAndPublishTask( void * pvParameters )
+{
+    BaseType_t xX;
+    BaseType_t xReturned;
+    const TickType_t xFiveSeconds = pdMS_TO_TICKS( 5000UL );
+    const BaseType_t xIterationsInAMinute = 60 / 5;
+    TaskHandle_t xEchoingTask = NULL;
+
+    /* Avoid compiler warnings about unused parameters. */
+    ( void ) pvParameters;
+
+    /* Create the MQTT client object and connect it to the MQTT broker. */
+    xReturned = prvCreateClientAndConnectToBroker();
+
+    if( xReturned != pdPASS )
+    {
+        configPRINTF( ( "MQTT sensor test could not connect to broker.\r\n" ) );
+    }
+
+    if( xReturned == pdPASS )
+    {
+      
+        configPRINTF( ( "MQTT echo test echoing task created.\r\n" ) );
+
+        /* Subscribe to the echo topic. */
+        xReturned = prvSubscribe();
+    
+        /* MQTT client is now connected to a broker.  Publish a message
+         * every second until a minute has elapsed. */
+        for(;;)
+        {
+            prvPublishNextMessage( xX );
+            /* One seconds delay between publishes. */
+            vTaskDelay( xFiveSeconds/5 );          
+        }
+    }
+
+    /* Disconnect the client. */
+    ( void ) MQTT_AGENT_Disconnect( xMQTTHandle, democonfigMQTT_TIMEOUT );
+
+    /* End the demo by deleting all created resources. */
+    configPRINTF( ( "MQTT sensor demo finished.\r\n" ) );
+    configPRINTF( ( "----Demo finished----\r\n" ) );
+    vMessageBufferDelete( xEchoMessageBuffer );
     vTaskDelete( xEchoingTask );
     vTaskDelete( NULL ); /* Delete this task. */
 }
+#endif
 /*-----------------------------------------------------------*/
 
 void vStartMQTTEchoDemo( void )
