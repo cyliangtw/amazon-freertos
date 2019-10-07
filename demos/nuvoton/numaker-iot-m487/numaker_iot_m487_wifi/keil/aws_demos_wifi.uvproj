@@ -514,19 +514,24 @@
               <FilePath>..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\src\fmc.c</FilePath>
             </File>
             <File>
+              <FileName>gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\src\gpio.c</FilePath>
+            </File>
+            <File>
               <FileName>sys.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\src\sys.c</FilePath>
             </File>
             <File>
-              <FileName>uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\src\uart.c</FilePath>
-            </File>
-            <File>
               <FileName>spim.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\src\spim.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\lib\third_party\mcu_vendor\nuvoton\M480\StdDriver\src\uart.c</FilePath>
             </File>
           </Files>
         </Group>
