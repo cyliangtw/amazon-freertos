@@ -900,10 +900,16 @@ ESP_WIFI_Status_t ESP_WIFI_StartSerialFlowCtrl( ESP_WIFI_Object_t * pxObj)
 {
     ESP_WIFI_Status_t xRet;
 
-    sprintf((char *)pxObj->CmdData, "AT+UART_CUR=115200,8,1,0,3\r\n");
+    configPRINTF(("Enable WiFi H/W flow control\n"));
+    sprintf((char *)pxObj->CmdData, "AT+UART_CUR=%d,8,1,0,3\r\n", wificonfigBAUD_RATE);
     xRet = ESP_AT_Command(pxObj, pxObj->CmdData, 0);
 
     if (xRet == ESP_WIFI_STATUS_OK) {
+        if (wificonfigBAUD_RATE != 115200) {
+            /* Setup the baud rate */
+            configPRINTF(("Change baudrate to %d\n", wificonfigBAUD_RATE));
+            UART_Open(pxObj->Uart, wificonfigBAUD_RATE);
+        }
         // NOTE: Added in M480. Before configuring RTSACTLV, disable TX/RX.
         pxObj->Uart->FUNCSEL |= UART_FUNCSEL_TXRXDIS_Msk;
         while (pxObj->Uart->FIFOSTS & UART_FIFOSTS_TXRXACT_Msk);
