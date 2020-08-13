@@ -233,6 +233,8 @@ BaseType_t ESP_Platform_Init( ESP_WIFI_Object_t * pxObj )
         /* Select UART1 clock source is HXT */
         CLK_SetModuleClock(UART1_MODULE, CLK_CLKSEL1_UART1SEL_HXT, CLK_CLKDIV0_UART1(1));
 
+	SYS_ResetModule(UART1_RST);
+
         /* Set PH multi-function pins for UART1 RXD, TXD */
         SYS->GPH_MFPH &= ~(SYS_GPH_MFPH_PH8MFP_Msk | SYS_GPH_MFPH_PH9MFP_Msk);
         SYS->GPH_MFPH |= (SYS_GPH_MFPH_PH8MFP_UART1_TXD | SYS_GPH_MFPH_PH9MFP_UART1_RXD);
