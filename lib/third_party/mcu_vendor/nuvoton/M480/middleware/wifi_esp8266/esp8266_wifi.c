@@ -233,7 +233,7 @@ BaseType_t ESP_Platform_Init( ESP_WIFI_Object_t * pxObj )
         /* Select UART1 clock source is HXT */
         CLK_SetModuleClock(UART1_MODULE, CLK_CLKSEL1_UART1SEL_HXT, CLK_CLKDIV0_UART1(1));
 
-	SYS_ResetModule(UART1_RST);
+        SYS_ResetModule(UART1_RST);
 
         /* Set PH multi-function pins for UART1 RXD, TXD */
         SYS->GPH_MFPH &= ~(SYS_GPH_MFPH_PH8MFP_Msk | SYS_GPH_MFPH_PH9MFP_Msk);
@@ -350,9 +350,26 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
             } else if ((strstr(pcPtr, AT_FAIL_STRING)) || (strstr(pcPtr, AT_ERROR_STRING))) {
                 ucExit = 1;
                 xRet = ESP_WIFI_STATUS_ERROR;
-            } else if (strstr(pcPtr, AT_CLOSE_STRING)) {
+            } else if (strstr(pcPtr, AT_CLOSE0_STRING)) {
                 ucExit = 1;
                 xRet = ESP_WIFI_STATUS_CLOSE;
+                xWifiIpd[0].IsOpen = pdFALSE;
+            } else if (strstr(pcPtr, AT_CLOSE1_STRING)) {
+                ucExit = 1;
+                xRet = ESP_WIFI_STATUS_CLOSE;
+                xWifiIpd[1].IsOpen = pdFALSE;
+            } else if (strstr(pcPtr, AT_CLOSE2_STRING)) {
+                ucExit = 1;
+                xRet = ESP_WIFI_STATUS_CLOSE;
+                xWifiIpd[2].IsOpen = pdFALSE;
+            } else if (strstr(pcPtr, AT_CLOSE3_STRING)) {
+                ucExit = 1;
+                xRet = ESP_WIFI_STATUS_CLOSE;
+                xWifiIpd[3].IsOpen = pdFALSE;
+            } else if (strstr(pcPtr, AT_CLOSE4_STRING)) {
+                ucExit = 1;
+                xRet = ESP_WIFI_STATUS_CLOSE;
+                xWifiIpd[4].IsOpen = pdFALSE;
             } else if ((strstr(pcPtr, AT_RECV_STRING)) && (pxObj->IsPassiveMode == pdTRUE)) {
                 ucExit = 1;
                 xRet = ESP_WIFI_STATUS_RECV;
@@ -384,10 +401,9 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
             break;
 
         case ':':
-            if (xWifiIpd[pxObj->ActiveSocket].IsPassiveMode == pdTRUE) {
+            if (pcRecv = strstr(pcPtr, AT_PASSIVE_STRING)) {
                 /* For TCP passive mode to check +CIPRECVDATA */
-                pcRecv = strstr(pcPtr, AT_PASSIVE_STRING);
-                if (pcRecv) {
+                if (xWifiIpd[pxObj->ActiveSocket].IsPassiveMode == pdTRUE) {
                     /* Clear the receive buffer */
                     memcpy(ucRecvHeader, pcRecv, sizeof(ucRecvHeader));
                     pcRecv = (char *)(ucRecvHeader);
@@ -422,26 +438,32 @@ ESP_WIFI_Status_t ESP_IO_Recv( ESP_WIFI_Object_t * pxObj, uint8_t pucRxBuf[], ui
                     ucExit = 1;
                     xRet = ESP_WIFI_STATUS_RECV;
                 }
-            } else {
+            } else if (pcRecv = strstr(pcPtr, AT_RECV_STRING)) {
                 /* For TCP/UDP active mode to check +IPD */
-                pcRecv = strstr(pcPtr, AT_RECV_STRING);
-                if (pcRecv) {
-                    /* Clear the receive buffer */
-                    memcpy(ucRecvHeader, pcRecv, sizeof(ucRecvHeader));
-                    pcRecv = (char *)(ucRecvHeader);
 
-                    pcPtr = strstr(pcRecv, AT_RECV_STRING);
-                    pcPtr = strtok(pcPtr, pcDelim);
-                    /* Check multiple connection */
-                    if (pxObj->IsMultiConn == pdTRUE) {
-                        /* Get the Link ID */
-                        pcPtr = strtok(NULL, pcDelim);
-                        ucIpdLinkID = (uint8_t)atoi(pcPtr);
-                    }
-                    /* Get the IPD length */
+                /* Clear the receive buffer */
+                memcpy(ucRecvHeader, pcRecv, sizeof(ucRecvHeader));
+                pcRecv = (char *)(ucRecvHeader);
+
+                pcPtr = strstr(pcRecv, AT_RECV_STRING);
+                pcPtr = strtok(pcPtr, pcDelim);
+                /* Check multiple connection */
+                if (pxObj->IsMultiConn == pdTRUE) {
+                    /* Get the Link ID */
                     pcPtr = strtok(NULL, pcDelim);
-                    usIpdLength = (uint16_t)atoi(pcPtr);
+                    ucIpdLinkID = (uint8_t)atoi(pcPtr);
+                }
+                /* Get the IPD length */
+                pcPtr = strtok(NULL, pcDelim);
+                usIpdLength = (uint16_t)atoi(pcPtr);
 
+                if (ucIpdLinkID >= wificonfigMAX_SOCKETS || !xWifiIpd[ucIpdLinkID].IsOpen) {
+                    configPRINTF(("ERROR: [%s] Invalid socket ID %d !!\n", __func__, ucIpdLinkID));
+                    ucExit = 1;
+                    break;
+                }
+
+                if (xWifiIpd[ucIpdLinkID].IsPassiveMode == pdFALSE) {
                     /* for RX packet dynamic malloc */
                     usAllocLength = sizeof(struct ESP_WIFI_PACKET) + usIpdLength;
 
@@ -666,7 +688,6 @@ ESP_WIFI_Status_t ESP_WIFI_Disconnect( ESP_WIFI_Object_t * pxObj )
 ESP_WIFI_Status_t ESP_WIFI_Reset( ESP_WIFI_Object_t * pxObj )
 {
     ESP_WIFI_Status_t xRet;
-    uint8_t ucCount;
 
 #if ESP_WIFI_HW_RESET
     /* H/W reset */
@@ -686,12 +707,15 @@ ESP_WIFI_Status_t ESP_WIFI_Reset( ESP_WIFI_Object_t * pxObj )
     pxObj->IsMultiConn = pdFALSE;
     pxObj->IsPassiveMode = pdFALSE;
     pxObj->HeapUsage = 0;
-    pxObj->ActiveSocket = 0;
+    pxObj->ActiveSocket = -1;
     gPackets = 0;
     gPacketsEnd = &gPackets;
     RX_BUF_RESET();
 
     /* Clear the socket Ipd buffer */
+    for (int id = 0; id < wificonfigMAX_SOCKETS; id++) {
+        xWifiIpd[id].IsOpen = pdFALSE;
+    }
     ESP_WIFI_Clear_Ipd(pxObj, ESP8266_ALL_SOCKET_IDS);
 
     return xRet;
@@ -762,7 +786,7 @@ void ESP_WIFI_Clear_Ipd( ESP_WIFI_Object_t * pxObj, uint8_t LinkID )
         }
     }
     if (LinkID == ESP8266_ALL_SOCKET_IDS) {
-        for (int id = 0; id < 5; id++) {
+        for (int id = 0; id < wificonfigMAX_SOCKETS; id++) {
             xWifiIpd[LinkID].DataAvailable = 0;
         }
     } else {
@@ -787,7 +811,6 @@ ESP_WIFI_Status_t ESP_WIFI_GetConnStatus( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Co
     ESP_WIFI_Status_t xRet;
     char *pcDelim = ":,\r\n";
     char *pcPtr;
-    uint8_t ucCount;
 
     xRet = ESP_AT_Command(pxObj, (uint8_t *)"AT+CIPSTATUS\r\n", 0);
 
@@ -943,6 +966,11 @@ ESP_WIFI_Status_t ESP_WIFI_StartClient( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn
     ESP_WIFI_Status_t xClose;
     uint8_t ucCount;
 
+    if (pxConn->LinkID >= wificonfigMAX_SOCKETS || xWifiIpd[pxConn->LinkID].IsOpen) {
+        configPRINTF(("ERROR: [%s] Invalid socket ID %d !!\n", __func__, pxConn->LinkID));
+        return ESP_WIFI_STATUS_ERROR;
+    }
+
     /* Set multiple connection */
     if (pxObj->IsMultiConn == pdTRUE) {
         sprintf((char *)pxObj->CmdData, "AT+CIPSTART=%d,", pxConn->LinkID);
@@ -986,7 +1014,10 @@ ESP_WIFI_Status_t ESP_WIFI_StartClient( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn
     sprintf((char *)pxObj->CmdData + strlen((char *)pxObj->CmdData), "\r\n");
     xRet = ESP_AT_Command(pxObj, pxObj->CmdData, 0);
 
-    if (xRet != ESP_WIFI_STATUS_OK) {
+    if (xRet == ESP_WIFI_STATUS_OK) {
+        xWifiIpd[pxConn->LinkID].IsOpen = pdTRUE;
+        ESP_WIFI_Clear_Ipd(pxObj, pxConn->LinkID);
+    } else {
         configPRINTF(("%s returns %d failed !!\n", __func__, xRet));
         /* Wait for socket closed if returns error */
         if ((xRet == ESP_WIFI_STATUS_ERROR) && (!strstr((char *)pxObj->CmdData, "ALREADY CONNECTED"))) {
@@ -1009,6 +1040,7 @@ ESP_WIFI_Status_t ESP_WIFI_StopClient( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_
 {
     if (pxObj->IsMultiConn == pdTRUE) {
         sprintf((char *)pxObj->CmdData, "AT+CIPCLOSE=%d\r\n", pxConn->LinkID);
+        xWifiIpd[pxConn->LinkID].IsOpen = pdFALSE;
     } else {
         sprintf((char *)pxObj->CmdData, "AT+CIPCLOSE\r\n");
     }
@@ -1030,12 +1062,12 @@ ESP_WIFI_Status_t ESP_WIFI_Send( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
     uint8_t ucCount;
 
     xTickEnd = xTaskGetTickCount() + xTimeout;
+    (*usSendLen) = 0;
 
-    if (pcBuf == NULL) {
+    if (pcBuf == NULL || pxConn->LinkID >= wificonfigMAX_SOCKETS || !xWifiIpd[pxConn->LinkID].IsOpen) {
         return xRet;
     }
 
-    (*usSendLen) = 0;
     while ((*usSendLen) < usReqLen) {
         usAskSend = usReqLen - (*usSendLen);
         if (usAskSend > ESP_WIFI_SEND_SIZE)
@@ -1133,6 +1165,7 @@ ESP_WIFI_Status_t ESP_WIFI_Recv_TCP_PASSIVE( ESP_WIFI_Object_t * pxObj, uint8_t 
                 (*usRecvLen) = xWifiIpd[ucLinkID].DataReceive;
             }
         }
+        pxObj->ActiveSocket = -1;
     } else {
         // Try to get the +IPD message
         xRet = ESP_IO_Recv(pxObj, pxObj->CmdData, sizeof(pxObj->CmdData), ucLinkID, ESP_WIFI_SHORT_RECV_TO);
@@ -1161,6 +1194,11 @@ ESP_WIFI_Status_t ESP_WIFI_Recv( ESP_WIFI_Object_t * pxObj, ESP_WIFI_Conn_t * px
 
     xTickEnd = xTaskGetTickCount() + xTimeout;
     (*usRecvLen) = 0;
+
+    if (pxConn->LinkID >= wificonfigMAX_SOCKETS || !xWifiIpd[pxConn->LinkID].IsOpen) {
+        configPRINTF(("ERROR: [%s] Invalid socket ID %d !!\n", __func__, pxConn->LinkID));
+        return xRet;
+    }
 
     /* Check TCP passive mode */
     if (xWifiIpd[pxConn->LinkID].IsPassiveMode == pdTRUE) {
